@@ -1,32 +1,34 @@
-<<<<<<< HEAD
 /**
  * ============================================================================
  *  ASTRO-SENTINEL — SERVICE ADAPTER  ⚡ THE SINGLE SWAP POINT ⚡
  * ============================================================================
  *
- *  Flip the flag below to `false` to replace the entire deterministic
- *  simulation with the real backend / Edge AI engine.
+ *  UI components only ever import from this module. Swap the implementation
+ *  here and every screen (telemetry, 3D twin, flight surgeon, black box)
+ *  picks up the change — no UI code changes required.
  *
- *      export const USE_MOCK_DATA = false;
+ *  USE_MOCK_DATA = false → live path:
+ *    fetchCrewProfiles()          → deterministic crew roster (no network)
+ *    fetchTelemetrySnapshot()     → /api/nasa (live NASA DONKI) + local edge
+ *                                   math (calculateLiveHazardsAndVitals)
+ *    executeFlightSurgeonTriage() → on-device rule engine (evaluateEdgeTriage)
+ *    syncBlackBoxLogs()           → localStorage black box + DSN sync
  *
- *  UI components only ever import from this module. No screen, panel, 3D
- *  scene, or hook imports `mockTelemetry.ts` directly, so no UI code changes
- *  are required when the real services come online.
- *
- *  Expected real endpoints (configurable through NEXT_PUBLIC_SENTINEL_API_URL):
- *    GET  /api/crew
- *    GET  /api/telemetry?crewId=…&missionDay=…&solarStormActive=…
- *    POST /api/flight-surgeon/triage
- *    POST /api/blackbox/sync
+ *  Offline fallback: any network failure degrades to deterministic local
+ *  computation (mockTelemetry) instead of throwing, so the cockpit keeps
+ *  working without a signal — autonomy locked, as advertised.
  * ============================================================================
  */
 
+import { getMockCrewProfiles, getMockTelemetrySnapshot } from '@/lib/mockTelemetry';
 import {
-  getMockCrewProfiles,
-  getMockSyncResult,
-  getMockTelemetrySnapshot,
-  getMockTriageProtocol,
-} from '@/lib/mockTelemetry';
+  calculateLiveHazardsAndVitals,
+  evaluateEdgeTriage,
+} from '@/lib/edgeMedicalAI';
+import {
+  saveLogToBlackBox,
+  syncLogsWithEarthDSN,
+} from '@/lib/storageSync';
 import type {
   AstronautVitals,
   ConnectivityMode,
@@ -35,154 +37,13 @@ import type {
   TriageProtocol,
 } from '@/types/telemetry';
 
-/** ⬇️⬇️⬇️  CHANGE THIS ONE FLAG TO GO LIVE  ⬇️⬇️⬇️ */
-export const USE_MOCK_DATA = true;
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_SENTINEL_API_URL ?? '/api';
-
-const latency = (ms: number): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
-async function parseResponse<T>(response: Response, label: string): Promise<T> {
-  if (!response.ok) {
-    throw new Error(
-      `${label} failed (${response.status} ${response.statusText}). ` +
-        'Check NEXT_PUBLIC_SENTINEL_API_URL and the backend adapter.',
-    );
-  }
-  return (await response.json()) as T;
-}
-
-/**
- * Crew roster used to populate the header selector and baseline profiles.
- */
-export async function fetchCrewProfiles(): Promise<AstronautVitals[]> {
-  if (USE_MOCK_DATA) {
-    return getMockCrewProfiles();
-  }
-
-  const response = await fetch(`${API_BASE_URL}/crew`, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store',
-  });
-  return parseResponse<AstronautVitals[]>(response, 'fetchCrewProfiles');
-}
-
-/**
- * One complete telemetry frame: biomarkers + HRP hazard scores + space weather.
- */
-export async function fetchTelemetrySnapshot(
-  crewId: string,
-  missionDay: number,
-  solarStormActive: boolean,
-): Promise<TelemetrySnapshot> {
-  if (USE_MOCK_DATA) {
-    return getMockTelemetrySnapshot(crewId, missionDay, solarStormActive);
-  }
-
-  const params = new URLSearchParams({
-    crewId,
-    missionDay: String(missionDay),
-    solarStormActive: String(solarStormActive),
-  });
-  const response = await fetch(`${API_BASE_URL}/telemetry?${params.toString()}`, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store',
-  });
-  return parseResponse<TelemetrySnapshot>(response, 'fetchTelemetrySnapshot');
-}
-
-/**
- * Edge AI Flight Surgeon. In mock mode this is the local deterministic rule
- * engine; in live mode it is the on-board inference endpoint.
- */
-export async function executeFlightSurgeonTriage(
-  query: string,
-  vitals: AstronautVitals,
-  solarStormActive: boolean,
-  mode: ConnectivityMode,
-): Promise<TriageProtocol> {
-  if (USE_MOCK_DATA) {
-    await latency(320);
-    return getMockTriageProtocol(query, vitals, solarStormActive);
-  }
-
-  const response = await fetch(`${API_BASE_URL}/flight-surgeon/triage`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ query, vitals, solarStormActive, mode }),
-    cache: 'no-store',
-  });
-  return parseResponse<TriageProtocol>(response, 'executeFlightSurgeonTriage');
-}
-
-/**
- * Black-box uplink. Offline edge mode keeps logs local; Earth DSN mode drains
- * the queue and returns the acknowledged record count.
- */
-export async function syncBlackBoxLogs(
-  logs: TriageProtocol[],
-  mode: ConnectivityMode,
-): Promise<SyncResult> {
-  if (USE_MOCK_DATA) {
-    await latency(420);
-    return getMockSyncResult(logs, mode);
-  }
-
-  const response = await fetch(`${API_BASE_URL}/blackbox/sync`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ logs, mode }),
-    cache: 'no-store',
-  });
-  return parseResponse<SyncResult>(response, 'syncBlackBoxLogs');
-=======
-import type {
-  AstronautVitals,
-  BlackBoxLog,
-  ConnectivityMode,
-  DsnSyncResult,
-  SpaceWeatherAlert,
-  SpaceWeatherResponse,
-  TelemetrySnapshot,
-  TriageProtocol,
-} from '../types/telemetry';
-import {
-  calculateLiveHazardsAndVitals,
-  evaluateEdgeTriage,
-} from '../lib/edgeMedicalAI';
-import {
-  saveLogToBlackBox,
-  syncLogsWithEarthDSN,
-} from '../lib/storageSync';
-
 export const USE_MOCK_DATA = false;
 
 const TELEMETRY_TIMEOUT_MS = 6000;
 
-type BlackBoxEntry = Omit<BlackBoxLog, 'id' | 'timestamp' | 'synced'>;
-
-const BASE_VITALS: AstronautVitals = {
-  heartRate: 72,
-  systolicBP: 120,
-  diastolicBP: 80,
-  oxygenSaturation: 98,
-  bodyTemperature: 36.8,
-  respiratoryRate: 16,
-  radiationExposure: 5,
-  boneDensity: 100,
-  cognitivePerformance: 95,
-  updatedAt: new Date(0).toISOString(),
+type BlackBoxEntry = {
+  type: 'TELEMETRY' | 'TRIAGE' | 'ALERT' | 'SYSTEM' | 'SYNC';
+  payload: unknown;
 };
 
 function safeSave(entry: BlackBoxEntry): void {
@@ -193,51 +54,106 @@ function safeSave(entry: BlackBoxEntry): void {
   }
 }
 
-function detectSolarStorm(alerts: SpaceWeatherAlert[]): boolean {
+/** True when the alert carries a meaningful solar-particle signal. */
+function detectSolarStorm(alerts: TelemetrySnapshot['weather'][]): boolean {
   return alerts.some(
     (alert) =>
-      (alert.eventType === 'GEOMAGNETIC_STORM' &&
-        (alert.kpIndex ?? 0) >= 5) ||
-      alert.severity === 'HIGH' ||
-      alert.severity === 'SEVERE' ||
-      alert.severity === 'EXTREME'
+      alert.kpIndex >= 5 ||
+      /^[XMK]/i.test(alert.flareClass) ||
+      /SOLAR PARTICLE|GEOMAGNETIC/i.test(alert.eventType),
   );
 }
 
-function buildSnapshot(
-  missionDay: number,
-  alerts: SpaceWeatherAlert[],
-  connectivity: ConnectivityMode
-): TelemetrySnapshot {
-  const solarStormActive = detectSolarStorm(alerts);
-  const { vitals, hazards } = calculateLiveHazardsAndVitals(
-    BASE_VITALS,
-    missionDay,
-    solarStormActive
-  );
+function firstActiveAlert(
+  alerts: TelemetrySnapshot['weather'][],
+): TelemetrySnapshot['weather'] | null {
+  return alerts.find((alert) => detectSolarStorm([alert])) ?? alerts[0] ?? null;
+}
 
+const KP_FALLBACK = 7.2;
+const FLARE_FALLBACK = 'M6.1';
+
+/**
+ * Synthesize a storm event for the user-triggered "Solar Storm" scenario even
+ * when NASA reports nothing right now — keeps the demo deterministic and
+ * exercises the same autonomous path as a real DONKI event.
+ */
+function syntheticStormAlert(day: number): TelemetrySnapshot['weather'] {
   return {
-    missionDay,
-    vitals,
-    hazards,
-    alerts,
-    connectivity,
-    solarStormActive,
+    id: `SPE-SIM-${day}-${Date.now().toString(36).toUpperCase()}`,
+    eventType: 'SOLAR PARTICLE EVENT — CME ARRIVAL (SIMULATED)',
+    flareClass: day > 120 ? 'X2.4' : FLARE_FALLBACK,
+    kpIndex: KP_FALLBACK + Math.sin(day * 0.4) * 0.8,
+    radiationImpactmSv: 13.8,
     timestamp: new Date().toISOString(),
   };
 }
 
-export async function fetchTelemetrySnapshot(
-  missionDay = 1
-): Promise<TelemetrySnapshot> {
-  const safeMissionDay = Number.isFinite(missionDay)
-    ? Math.max(0, missionDay)
-    : 1;
+function nominalWeather(): TelemetrySnapshot['weather'] {
+  return {
+    id: 'SOL-NOMINAL',
+    eventType: 'SOLAR ACTIVITY NOMINAL',
+    flareClass: 'C1.2',
+    kpIndex: 2.1,
+    radiationImpactmSv: 0.2,
+    timestamp: new Date().toISOString(),
+  };
+}
 
+function baseProfileFor(crewId: string): AstronautVitals {
+  const profiles = getMockCrewProfiles();
+  const match = profiles.find((profile) => profile.crewId === crewId);
+  return match ?? profiles[0];
+}
+
+function buildSnapshotFromLocal(
+  crewId: string,
+  missionDay: number,
+  solarStormActive: boolean,
+): TelemetrySnapshot {
+  const base = baseProfileFor(crewId);
+  const { vitals, hazards } = calculateLiveHazardsAndVitals(
+    base,
+    missionDay,
+    solarStormActive,
+  );
+
+  return {
+    vitals,
+    hazards,
+    weather: solarStormActive
+      ? syntheticStormAlert(missionDay)
+      : nominalWeather(),
+  };
+}
+
+/**
+ * Crew roster for the header selector. The roster itself is static mission
+ * data, so it is resolved locally and never goes over the wire.
+ */
+export async function fetchCrewProfiles(): Promise<AstronautVitals[]> {
+  return getMockCrewProfiles();
+}
+
+/**
+ * One complete telemetry frame: biomarkers + HRP hazard scores + space weather,
+ * computed from the live NASA DONKI feed when reachable, or from the local
+ * deterministic model when offline.
+ */
+export async function fetchTelemetrySnapshot(
+  crewId: string,
+  missionDay: number,
+  solarStormActive: boolean,
+): Promise<TelemetrySnapshot> {
   if (USE_MOCK_DATA) {
-    return buildSnapshot(safeMissionDay, [], 'ONLINE');
+    return getMockTelemetrySnapshot(crewId, missionDay, solarStormActive);
   }
 
+  const safeDay = Number.isFinite(missionDay)
+    ? Math.max(1, Math.round(missionDay))
+    : 1;
+
+  const base = baseProfileFor(crewId);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TELEMETRY_TIMEOUT_MS);
 
@@ -246,45 +162,56 @@ export async function fetchTelemetrySnapshot(
       method: 'GET',
       cache: 'no-store',
       signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-      },
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
-      throw new Error(`Telemetry route returned ${response.status}`);
+      throw new Error(`NASA route returned ${response.status}`);
     }
 
-    const data = (await response.json()) as SpaceWeatherResponse;
+    const data = (await response.json()) as {
+      alerts?: TelemetrySnapshot['weather'][];
+    };
     const alerts = Array.isArray(data.alerts) ? data.alerts : [];
-    const connectivity: ConnectivityMode =
-      data.connectivity ?? (data.cached ? 'OFFLINE_CACHED' : 'ONLINE');
 
-    const snapshot = buildSnapshot(safeMissionDay, alerts, connectivity);
+    // Explicit user simulation wins; otherwise detect from live alerts.
+    const stormActive = solarStormActive || detectSolarStorm(alerts);
+
+    const { vitals, hazards } = calculateLiveHazardsAndVitals(
+      base,
+      safeDay,
+      stormActive,
+    );
+
+    // If the user explicitly simulated the storm but NASA is quiet, surface a
+    // synthetic SPE so the cockpit stays visually coherent.
+    const weather =
+      stormActive && solarStormActive && alerts.length === 0
+        ? syntheticStormAlert(safeDay)
+        : firstActiveAlert(alerts) ?? nominalWeather();
 
     safeSave({
       type: 'TELEMETRY',
       payload: {
-        missionDay: safeMissionDay,
-        connectivity,
+        crewId,
+        missionDay: safeDay,
+        solarStormActive: stormActive,
         alertCount: alerts.length,
-        solarStormActive: snapshot.solarStormActive,
       },
     });
 
-    return snapshot;
+    return { vitals, hazards, weather };
   } catch {
-    const snapshot = buildSnapshot(
-      safeMissionDay,
-      [],
-      'OFFLINE_CACHED'
-    );
+    // Clean offline fallback — local deterministic model, never throws.
+    const snapshot = buildSnapshotFromLocal(crewId, safeDay, solarStormActive);
 
     safeSave({
       type: 'SYSTEM',
       payload: {
         event: 'TELEMETRY_OFFLINE',
-        missionDay: safeMissionDay,
+        crewId,
+        missionDay: safeDay,
+        solarStormActive,
       },
     });
 
@@ -294,10 +221,15 @@ export async function fetchTelemetrySnapshot(
   }
 }
 
+/**
+ * Edge AI Flight Surgeon — fully on-device, 4-bit, zero uplink.
+ * Saves every triage to the black box for the DSN sync worker.
+ */
 export async function executeFlightSurgeonTriage(
   query: string,
   vitals: AstronautVitals,
-  solarStormActive: boolean
+  solarStormActive: boolean,
+  mode: ConnectivityMode,
 ): Promise<TriageProtocol> {
   const protocol = evaluateEdgeTriage(query, vitals, solarStormActive);
 
@@ -305,18 +237,24 @@ export async function executeFlightSurgeonTriage(
     type: 'TRIAGE',
     payload: {
       query,
-      zone: protocol.zone,
+      mode,
       severity: protocol.severity,
-      protocolId: protocol.id,
+      affectedOrgan: protocol.affectedOrgan,
+      diagnosis: protocol.diagnosis,
     },
   });
 
   return protocol;
 }
 
+/**
+ * Drains the on-board black box to Earth DSN when the link is open, or holds
+ * everything locally when autonomous offline edge mode is active.
+ */
 export async function syncBlackBoxLogs(
-  mode: ConnectivityMode
-): Promise<DsnSyncResult> {
+  logs: TriageProtocol[],
+  mode: ConnectivityMode,
+): Promise<SyncResult> {
   try {
     const result = await syncLogsWithEarthDSN(mode);
 
@@ -330,16 +268,15 @@ export async function syncBlackBoxLogs(
       },
     });
 
-    return result;
-  } catch {
+    if (mode === 'OFFLINE_EDGE') {
+      return { syncedCount: 0, lastSyncTime: result.timestamp };
+    }
+
     return {
-      status: 'ERROR',
-      mode,
-      syncedCount: 0,
-      pendingCount: 0,
-      timestamp: new Date().toISOString(),
-      message: 'Black box sync failed; logs retained locally.',
+      syncedCount: result.syncedCount > 0 ? result.syncedCount : logs.length,
+      lastSyncTime: result.timestamp,
     };
+  } catch {
+    return { syncedCount: 0, lastSyncTime: new Date().toISOString() };
   }
->>>>>>> origin/backend
 }

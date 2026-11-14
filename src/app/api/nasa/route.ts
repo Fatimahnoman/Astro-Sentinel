@@ -1,7 +1,7 @@
 import type {
+  ConnectivityMode,
   SpaceWeatherAlert,
   SpaceWeatherResponse,
-  SpaceWeatherSeverity,
 } from '../../../types/telemetry';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +12,7 @@ const REQUEST_TIMEOUT_MS = 5000;
 const LOOKBACK_DAYS = 30;
 
 let cachedAlerts: SpaceWeatherAlert[] = [];
+let cachedConnectivity: ConnectivityMode = 'OFFLINE_EDGE';
 
 type DonkiRecord = Record<string, unknown>;
 
@@ -29,39 +30,6 @@ function asNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value)
     ? value
     : undefined;
-}
-
-function flareSeverity(classType?: string): SpaceWeatherSeverity {
-  const letter = classType?.trim().charAt(0).toUpperCase();
-
-  switch (letter) {
-    case 'X':
-      return 'EXTREME';
-    case 'M':
-      return 'SEVERE';
-    case 'C':
-      return 'HIGH';
-    case 'B':
-      return 'MODERATE';
-    default:
-      return 'LOW';
-  }
-}
-
-function stormSeverity(kpIndex: number): SpaceWeatherSeverity {
-  if (kpIndex >= 8) {
-    return 'EXTREME';
-  }
-  if (kpIndex >= 7) {
-    return 'SEVERE';
-  }
-  if (kpIndex >= 6) {
-    return 'HIGH';
-  }
-  if (kpIndex >= 5) {
-    return 'MODERATE';
-  }
-  return 'LOW';
 }
 
 function formatDate(date: Date): string {
@@ -104,9 +72,7 @@ async function fetchWithTimeout(url: string): Promise<unknown> {
     const response = await fetch(url, {
       signal: controller.signal,
       cache: 'no-store',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
@@ -119,83 +85,72 @@ async function fetchWithTimeout(url: string): Promise<unknown> {
   }
 }
 
+/** Rough effective-dose contribution (mSv) for a single short-duration event. */
+function flareDoseMSv(classType?: string): number {
+  const letter = classType?.trim().charAt(0).toUpperCase();
+  switch (letter) {
+    case 'X':
+      return 13.8;
+    case 'M':
+      return 4.2;
+    case 'C':
+      return 0.8;
+    case 'B':
+      return 0.2;
+    default:
+      return 0.1;
+  }
+}
+
+function stormDoseMSv(kpIndex: number): number {
+  return Math.round(Math.max(0.2, kpIndex * 1.9) * 10) / 10;
+}
+
 function mapFlare(record: DonkiRecord): SpaceWeatherAlert | null {
   const flareId = asString(record.flrID);
-  const startTime = asString(record.beginTime);
+  const startTime = asString(record.beginTime) ?? new Date().toISOString();
 
-  if (!flareId || !startTime) {
+  if (!flareId) {
     return null;
   }
 
-  const classType = asString(record.classType);
-  const sourceLocation = asString(record.sourceLocation);
-  const peakTime = asString(record.peakTime);
-  const endTime = asString(record.endTime);
+  const classType = asString(record.classType) ?? 'C1.0';
 
-  const alert: SpaceWeatherAlert = {
+  return {
     id: `flr-${flareId}`,
-    eventType: 'SOLAR_FLARE',
-    severity: flareSeverity(classType),
-    startTime,
-    summary: classType
-      ? `${classType} solar flare${sourceLocation ? ` from ${sourceLocation}` : ''}`
-      : 'Solar flare detected',
-    source: 'NASA_DONKI',
+    eventType: `SOLAR PARTICLE EVENT — CLASS ${classType}`,
+    flareClass: classType,
+    kpIndex: 0,
+    radiationImpactmSv: flareDoseMSv(classType),
+    timestamp: startTime,
   };
-
-  if (classType) {
-    alert.classType = classType;
-  }
-  if (peakTime) {
-    alert.peakTime = peakTime;
-  }
-  if (endTime) {
-    alert.endTime = endTime;
-  }
-  if (sourceLocation) {
-    alert.sourceLocation = sourceLocation;
-  }
-
-  return alert;
 }
 
 function mapStorm(record: DonkiRecord): SpaceWeatherAlert | null {
   const stormId = asString(record.gstID);
-  const startTime = asString(record.beginTime);
+  const startTime = asString(record.beginTime) ?? new Date().toISOString();
 
-  if (!stormId || !startTime) {
+  if (!stormId) {
     return null;
   }
 
-  const endTime = asString(record.endTime);
-  const kpEntries = Array.isArray(record.allKpIndex)
-    ? record.allKpIndex
-    : [];
-
+  const kpEntries = Array.isArray(record.allKpIndex) ? record.allKpIndex : [];
   const kpIndex = kpEntries.reduce((max, entry) => {
     if (!isRecord(entry)) {
       return max;
     }
-
     const value = asNumber(entry.kpIndex);
     return value === undefined ? max : Math.max(max, value);
   }, 0);
 
-  const alert: SpaceWeatherAlert = {
+  return {
     id: `gst-${stormId}`,
-    eventType: 'GEOMAGNETIC_STORM',
-    severity: stormSeverity(kpIndex),
+    eventType: 'SOLAR PARTICLE EVENT — GEOMAGNETIC STORM',
+    flareClass: `G${kpIndex >= 8 ? 5 : kpIndex >= 7 ? 4 : kpIndex >= 6 ? 3 : kpIndex >= 5 ? 2 : 1}`,
     kpIndex,
-    startTime,
-    summary: `Geomagnetic storm peaking at Kp ${kpIndex}`,
-    source: 'NASA_DONKI',
+    radiationImpactmSv: stormDoseMSv(kpIndex),
+    timestamp: startTime,
   };
-
-  if (endTime) {
-    alert.endTime = endTime;
-  }
-
-  return alert;
 }
 
 async function fetchFlares(
@@ -244,7 +199,7 @@ function dedupeAndSort(alerts: SpaceWeatherAlert[]): SpaceWeatherAlert[] {
   }
 
   return Array.from(unique.values()).sort(
-    (a, b) => Date.parse(b.startTime) - Date.parse(a.startTime)
+    (a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp)
   );
 }
 
@@ -252,16 +207,14 @@ function offlineResponse(): Response {
   const body: SpaceWeatherResponse = {
     alerts: cachedAlerts,
     source: 'OFFLINE_CACHED',
-    connectivity: 'OFFLINE_CACHED',
+    connectivity: cachedConnectivity === 'EARTH_DSN_SYNC' ? 'EARTH_DSN_SYNC' : 'OFFLINE_EDGE',
     fetchedAt: new Date().toISOString(),
     cached: true,
   };
 
   return Response.json(body, {
     status: 200,
-    headers: {
-      'Cache-Control': 'no-store',
-    },
+    headers: { 'Cache-Control': 'no-store' },
   });
 }
 
@@ -293,21 +246,20 @@ export async function GET(): Promise<Response> {
 
     if (deduped.length > 0) {
       cachedAlerts = deduped;
+      cachedConnectivity = 'EARTH_DSN_SYNC';
     }
 
     const body: SpaceWeatherResponse = {
       alerts: deduped,
       source: 'NASA_DONKI',
-      connectivity: 'ONLINE',
+      connectivity: 'EARTH_DSN_SYNC',
       fetchedAt: new Date().toISOString(),
       cached: false,
     };
 
     return Response.json(body, {
       status: 200,
-      headers: {
-        'Cache-Control': 'no-store',
-      },
+      headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
     return offlineResponse();

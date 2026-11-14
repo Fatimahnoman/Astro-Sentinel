@@ -1,6 +1,5 @@
 import type {
   AstronautVitals,
-  HazardLevel,
   NasaHazardStatus,
   OrganZone,
   TriageProtocol,
@@ -21,31 +20,29 @@ const DIZZINESS_TERMS = [
   'eva dizziness',
 ];
 
-const BASE_DOSE_RATE_MSV_PER_DAY = 0.3;
-const STORM_DOSE_RATE_MSV_PER_DAY = 1.2;
+const BASE_DOSE_RATE_MSV_PER_DAY = 1.8;
+const STORM_DOSE_RATE_MSV_PER_DAY = 6.0;
 const BONE_LOSS_PCT_PER_DAY = 0.05;
 const STORM_BONE_PENALTY_PCT = 0.5;
-const CAREER_RADIATION_LIMIT_MSV = 600;
+const CAREER_RADIATION_LIMIT_MSV = 250;
 
 const SEVERITY_RANK: Record<TriageSeverity, number> = {
-  LOW: 0,
-  MODERATE: 1,
-  HIGH: 2,
-  CRITICAL: 3,
+  NOMINAL: 0,
+  WARNING: 1,
+  CRITICAL: 2,
 };
 
-const ZONE_PRIORITY: Record<OrganZone, number> = {
+const ZONE_PRIORITY: Record<NonNullable<OrganZone>, number> = {
   heart: 0,
   brain: 1,
   spine: 2,
 };
 
 interface TriageCandidate {
-  zone: OrganZone;
-  condition: string;
+  zone: NonNullable<OrganZone>;
+  diagnosis: string;
   severity: TriageSeverity;
-  recommendation: string;
-  steps: string[];
+  steps: [string, string, string];
   confidence: number;
 }
 
@@ -57,14 +54,6 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-function makeId(prefix: string): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function normalizeQuery(query: string): string {
   return query.toLowerCase().replace(/\s+/g, ' ').trim();
 }
@@ -74,15 +63,12 @@ function buildProtocol(
   solarStormActive: boolean
 ): TriageProtocol {
   return {
-    id: makeId('triage'),
-    zone: candidate.zone,
-    condition: candidate.condition,
     severity: candidate.severity,
-    recommendation: candidate.recommendation,
+    affectedOrgan: candidate.zone,
+    diagnosis: candidate.diagnosis,
     steps: candidate.steps,
-    confidence: candidate.confidence,
-    solarStormActive,
-    createdAt: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
+    synced: false,
   };
 }
 
@@ -94,37 +80,28 @@ export function evaluateEdgeTriage(
   const normalizedQuery = normalizeQuery(query);
   const candidates: TriageCandidate[] = [];
 
+  const dose = vitals.cumulativeRadiation;
   const radiationTriggered =
-    vitals.radiationExposure > RADIATION_MSV ||
-    (solarStormActive && vitals.radiationExposure > 100);
+    dose > RADIATION_MSV || (solarStormActive && dose > 100);
   const boneTriggered = vitals.boneDensity < BONE_DENSITY_PCT;
 
   if (radiationTriggered || boneTriggered || solarStormActive) {
     const severity: TriageSeverity =
-      vitals.radiationExposure > 250 || vitals.boneDensity < 80
-        ? 'CRITICAL'
-        : vitals.radiationExposure > RADIATION_MSV ||
-            vitals.boneDensity < BONE_DENSITY_PCT
-          ? 'HIGH'
-          : 'MODERATE';
+      dose > 250 || vitals.boneDensity < 80 ? 'CRITICAL' : 'WARNING';
 
     candidates.push({
       zone: 'spine',
-      condition:
+      diagnosis:
         radiationTriggered || solarStormActive
-          ? 'Radiation / skeletal risk during solar activity'
-          : 'Bone density loss',
+          ? 'Elevated radiation dose during solar activity — limiting EVA exposure'
+          : 'Bone-density loss below flight-monitoring threshold',
       severity,
-      recommendation:
-        severity === 'CRITICAL'
-          ? 'Shelter immediately and initiate flight-surgeon radiation protocol.'
-          : 'Limit EVA exposure and begin skeletal countermeasure protocol.',
       steps: [
-        'Move to the nearest radiation shelter or storm cellar.',
-        'Limit EVA exposure and secure the suit life-support loop.',
-        'Start hydration and calcium intake protocol.',
-        'Notify the flight surgeon and log cumulative dose.',
-        'Schedule a DXA bone-density scan at the next opportunity.',
+        solarStormActive
+          ? 'Move to the nearest radiation shelter or storm cellar now.'
+          : 'Limit EVA exposure and stay shielded when outside.',
+        'Start the hydration and calcium intake protocol.',
+        'Notify the flight surgeon and log the cumulative dose.',
       ],
       confidence: 0.88,
     });
@@ -132,26 +109,16 @@ export function evaluateEdgeTriage(
 
   if (vitals.heartRate > TACHYCARDIA_BPM) {
     const severity: TriageSeverity =
-      vitals.heartRate > 140
-        ? 'CRITICAL'
-        : vitals.heartRate > 125
-          ? 'HIGH'
-          : 'MODERATE';
+      vitals.heartRate > 140 ? 'CRITICAL' : 'WARNING';
 
     candidates.push({
       zone: 'heart',
-      condition: 'Tachycardia detected',
+      diagnosis: `Tachycardia detected — ${vitals.heartRate} BPM sustained`,
       severity,
-      recommendation:
-        severity === 'CRITICAL'
-          ? 'Abort EVA and initiate cardiac monitoring immediately.'
-          : 'Stop exertion and reassess cardiac status before continuing.',
       steps: [
         'Stop all activity and sit or brace securely.',
         'Rest for five minutes and re-measure heart rate.',
-        'Check blood pressure, SpO2, and respiratory rate.',
-        'Run an ECG if the suit or habitat monitor supports it.',
-        'Notify the flight surgeon with the trend data.',
+        'Run a 12-lead snapshot check; notify the flight surgeon.',
       ],
       confidence: 0.92,
     });
@@ -163,22 +130,17 @@ export function evaluateEdgeTriage(
 
   if (dizzinessTriggered) {
     const severity: TriageSeverity =
-      vitals.oxygenSaturation < 92 || vitals.systolicBP < 90
-        ? 'HIGH'
-        : 'MODERATE';
+      vitals.spo2 < 92 ? 'CRITICAL' : 'WARNING';
 
     candidates.push({
       zone: 'brain',
-      condition: 'EVA-associated dizziness / vestibular disturbance',
+      diagnosis:
+        'EVA-associated dizziness / vestibular disturbance — possible SANS or orthostatic strain',
       severity,
-      recommendation:
-        'Halt EVA movement, secure tethers, and run a neurological and orthostatic check.',
       steps: [
         'Halt EVA movement and secure all tethers.',
-        'Perform an orthostatic blood-pressure check.',
-        'Verify CO2 scrubber status and SpO2.',
-        'Run a simple cognitive orientation check.',
-        'Guide the astronaut back using the shortest safe route.',
+        'Perform an orthostatic check and verify SpO2 and CO2 scrubber status.',
+        'Guide the astronaut back via the shortest safe route and notify the flight surgeon.',
       ],
       confidence: 0.86,
     });
@@ -188,13 +150,13 @@ export function evaluateEdgeTriage(
     return buildProtocol(
       {
         zone: 'brain',
-        condition: 'No acute organ-specific distress detected',
-        severity: 'LOW',
-        recommendation: 'Continue EVA with standard monitoring.',
+        diagnosis:
+          'No acute organ-specific distress detected — continue with routine EVA monitoring',
+        severity: 'NOMINAL',
         steps: [
-          'Maintain standard EVA check-ins.',
-          'Reassess vitals every 15 minutes.',
-          'Escalate immediately if symptoms change.',
+          'Maintain standard EVA check-ins every 15 minutes.',
+          'Log any change in symptoms immediately.',
+          'Return to the habitat at the end of the shift for a full work-up.',
         ],
         confidence: 0.4,
       },
@@ -211,92 +173,52 @@ export function evaluateEdgeTriage(
   return buildProtocol(selected, solarStormActive);
 }
 
-function overallHazardLevel(score: number): HazardLevel {
-  if (score >= 80) {
-    return 'CRITICAL';
-  }
-  if (score >= 60) {
-    return 'HIGH';
-  }
-  if (score >= 40) {
-    return 'ELEVATED';
-  }
-  return 'LOW';
-}
-
 export function calculateLiveHazardsAndVitals(
   baseVitals: AstronautVitals,
   missionDay: number,
   solarStormActive: boolean
 ): { vitals: AstronautVitals; hazards: NasaHazardStatus } {
   const safeMissionDay = Number.isFinite(missionDay)
-    ? Math.max(0, missionDay)
+    ? Math.max(0, Math.round(missionDay))
     : 0;
-  const updatedAt = new Date().toISOString();
 
   const doseRate = solarStormActive
     ? STORM_DOSE_RATE_MSV_PER_DAY
     : BASE_DOSE_RATE_MSV_PER_DAY;
-  const radiationExposure = round1(
-    baseVitals.radiationExposure + doseRate * safeMissionDay
+  const cumulativeRadiation = round1(
+    baseVitals.cumulativeRadiation + doseRate * safeMissionDay
   );
 
   const vitals: AstronautVitals = {
+    crewId: baseVitals.crewId,
+    name: baseVitals.name,
+    role: baseVitals.role,
     heartRate: clamp(
       Math.round(
-        baseVitals.heartRate +
-          0.15 * safeMissionDay +
-          (solarStormActive ? 12 : 0)
+        baseVitals.heartRate + 0.15 * safeMissionDay + (solarStormActive ? 12 : 0)
       ),
       40,
       200
     ),
-    systolicBP: clamp(
-      Math.round(
-        baseVitals.systolicBP -
-          0.03 * safeMissionDay +
-          (solarStormActive ? 6 : 0)
-      ),
-      70,
-      200
-    ),
-    diastolicBP: clamp(
-      Math.round(
-        baseVitals.diastolicBP -
-          0.02 * safeMissionDay +
-          (solarStormActive ? 4 : 0)
-      ),
-      40,
-      130
-    ),
-    oxygenSaturation: round1(
+    spo2: round1(
       clamp(
-        baseVitals.oxygenSaturation -
-          0.01 * safeMissionDay -
-          (solarStormActive ? 0.5 : 0),
+        baseVitals.spo2 - 0.01 * safeMissionDay - (solarStormActive ? 0.5 : 0),
         80,
         100
       )
     ),
-    bodyTemperature: round1(
+    coreTemp: round1(
       clamp(
-        baseVitals.bodyTemperature +
-          0.005 * safeMissionDay +
-          (solarStormActive ? 0.2 : 0),
+        baseVitals.coreTemp + 0.005 * safeMissionDay + (solarStormActive ? 0.2 : 0),
         34,
         42
       )
     ),
-    respiratoryRate: clamp(
-      Math.round(
-        baseVitals.respiratoryRate +
-          0.05 * safeMissionDay +
-          (solarStormActive ? 2 : 0)
-      ),
-      8,
-      40
+    sleepScore: clamp(
+      Math.round(baseVitals.sleepScore - 0.05 * safeMissionDay - (solarStormActive ? 6 : 0)),
+      20,
+      100
     ),
-    radiationExposure,
     boneDensity: round1(
       clamp(
         baseVitals.boneDensity -
@@ -306,62 +228,26 @@ export function calculateLiveHazardsAndVitals(
         120
       )
     ),
-    cognitivePerformance: round1(
-      clamp(
-        baseVitals.cognitivePerformance -
-          0.15 * safeMissionDay -
-          (solarStormActive ? 8 : 0),
-        0,
-        100
-      )
-    ),
-    updatedAt,
+    cumulativeRadiation,
+    heartRateHistory: baseVitals.heartRateHistory,
   };
 
   const radiation = clamp(
-    Math.round((vitals.radiationExposure / CAREER_RADIATION_LIMIT_MSV) * 100),
+    Math.round((cumulativeRadiation / CAREER_RADIATION_LIMIT_MSV) * 100),
     0,
     100
-  );
-  const isolationConfinement = clamp(
-    Math.round(safeMissionDay * 0.35),
-    0,
-    100
-  );
-  const distanceFromEarth = clamp(
-    Math.round((safeMissionDay / 365) * 100),
-    0,
-    100
-  );
-  const gravityFields = clamp(
-    Math.round(safeMissionDay * 0.45),
-    0,
-    100
-  );
-  const hostileEnvironment = clamp(
-    Math.round(
-      20 + safeMissionDay * 0.15 + (solarStormActive ? 40 : 0)
-    ),
-    0,
-    100
-  );
-
-  const overallScore = Math.max(
-    radiation,
-    isolationConfinement,
-    distanceFromEarth,
-    gravityFields,
-    hostileEnvironment
   );
 
   const hazards: NasaHazardStatus = {
     radiation,
-    isolationConfinement,
-    distanceFromEarth,
-    gravityFields,
-    hostileEnvironment,
-    overall: overallHazardLevel(overallScore),
-    updatedAt,
+    isolation: clamp(Math.round(safeMissionDay * 0.35), 0, 100),
+    distanceFromEarth: clamp(Math.round((safeMissionDay / 365) * 100), 0, 100),
+    gravityFields: clamp(Math.round(safeMissionDay * 0.45), 0, 100),
+    hostileEnvironment: clamp(
+      Math.round(20 + safeMissionDay * 0.15 + (solarStormActive ? 40 : 0)),
+      0,
+      100
+    ),
   };
 
   return { vitals, hazards };

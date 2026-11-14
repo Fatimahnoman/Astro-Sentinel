@@ -169,7 +169,7 @@ export async function syncLogsWithEarthDSN(
   const currentLogs = readQueue();
   const pendingCount = currentLogs.filter((log) => !log.synced).length;
 
-  if (mode === 'OFFLINE_CACHED') {
+  if (mode === 'OFFLINE_EDGE') {
     return {
       status: 'OFFLINE',
       mode,
@@ -181,7 +181,7 @@ export async function syncLogsWithEarthDSN(
   }
 
   try {
-    await delay(mode === 'DSN_SYNC' ? 1200 : 600);
+    await delay(700);
 
     const latestLogs = readQueue();
     let syncedCount = 0;
@@ -206,9 +206,7 @@ export async function syncLogsWithEarthDSN(
       pendingCount: updatedLogs.filter((log) => !log.synced).length,
       timestamp: new Date().toISOString(),
       message:
-        mode === 'DSN_SYNC'
-          ? 'Deep Space Network relay acknowledged the black box logs.'
-          : 'Earth DSN uplink acknowledged the black box logs.',
+        'Deep Space Network relay acknowledged the black box logs.',
     };
   } catch {
     return {
