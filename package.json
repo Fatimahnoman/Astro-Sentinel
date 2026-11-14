@@ -1,0 +1,21 @@
+{
+  "name": "Astro-Sentinel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@types/three": "^0.187.0",
+    "framer-motion": "^14.13.0",
+    "lucide-react": "^1.72.0",
+    "recharts": "^3.10.1",
+    "three": "^0.187.0"
+  }
+}
