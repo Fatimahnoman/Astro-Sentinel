@@ -2,8 +2,8 @@
 
 # 🛰️ ASTRO-SENTINEL
 
-### Autonomous 3D Astronaut Digital Twin & Edge AI Flight Surgeon
-**NASA Space Apps Challenge 2026**
+### 🧑‍🚀 Autonomous 3D Astronaut Digital Twin & Edge AI Flight Surgeon
+**NASA Space Apps Challenge 2026** — *Houston to Mars, one neural net at a time*
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
@@ -16,9 +16,15 @@
 
 </div>
 
+<div align="center">
+
+#### 🧭 Jump to — **[🔥 The Problem](#-the-problem) · [💡 Solution](#-the-solution-at-a-glance) · [🧠 Core Pillars](#-core-pillars) · [🧰 Tech Stack](#-tech-stack) · [⚡ Quick Start](#-quick-start-2-minutes) · [🎬 60-Second Demo](#-how-to-use-60-second-demo) · [✅ Requirements](#-requirements-compliance-nasa-space-apps-2026) · [🚀 Deploy](#-deploy-to-vercel-2-minutes)**
+
+</div>
+
 ---
 
-## 🚀 The Problem
+## 🔥 The Problem
 
 Deep-space missions (Earth → Mars transit, ~180 days) face three brutal constraints:
 
@@ -30,42 +36,42 @@ Current practice relies on checklists and post-hoc radio calls. **ASTRO-SENTINEL
 
 ---
 
-## ✨ The Solution at a Glance
+## 💡 The Solution at a Glance
 
 ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees everything, everywhere, always:
 
 | Zone | What it shows |
 |------|---------------|
-| **① Command Header** | Live mission elapsed time · crew selector (Elena, Tariq, Kenji) · Earth-Link toggle · black-box sync badge |
-| **② Left Telemetry** | Heart-rate sparkline (neon Recharts) · SpO₂ · Core temp · Sleep score · **NASA HRP 5 Hazards** (0–100) · Solar-storm trigger |
-| **③ 3D Digital Twin** | Rotating holographic astronaut (React Three Fiber) · clickable **brain / heart / spine** nodes · scanner ring · orbit controls · per-organ HUD |
-| **④ Edge AI Flight Surgeon** | Offline deterministic clinical rule-engine (instant edge triage) · quick-symptom chips · voice in/out · **3-step protocol** · black-box log & DSN sync |
-| **⑤ 180-Day Timeline** | Deterministic Mars-transit simulator — drag the slider to watch radiation & bone loss grow, countermeasures adapt |
+| **🎛️ ① Command Header** | 🛰️ Live mission elapsed time · 👨‍🚀 crew selector (Elena, Tariq, Kenji) · 📡 Earth-Link toggle · 📦 black-box sync badge |
+| **📈 ② Left Telemetry** | 💓 Heart-rate sparkline (neon Recharts) · O₂ · Core temp · Sleep score · **NASA HRP 5 Hazards** (0–100) · 🌋 Solar-storm trigger |
+| **🧑‍🚀 ③ 3D Digital Twin** | Rotating holographic astronaut (React Three Fiber) · clickable **brain / heart / spine** nodes · scanner ring · orbit controls · per-organ HUD |
+| **🤖 ④ Edge AI Flight Surgeon** | Offline deterministic clinical rule-engine (instant edge triage) · quick-symptom chips · voice in/out · **3-step protocol** · black-box log & DSN sync |
+| **🪐 ⑤ 180-Day Timeline** | Deterministic Mars-transit simulator — drag the slider to watch radiation & bone loss grow, countermeasures adapt |
 
 ---
 
 ## 🧠 Core Pillars
 
-### 1️⃣ Live 3D Astronaut Digital Twin
+### 🧑‍🚀 1️⃣ Live 3D Astronaut Digital Twin
 - Rotating, translucent, wireframe human rendered with **React Three Fiber + drei**
 - **Brain, Heart, Spine** organ nodes — click any node on the 3D mesh (or press the HUD buttons / Tab + arrow keys) to open a live inspection panel: vitals, subsystem metrics, and an autonomous status verdict
 - Node pulse & alert rings react to the **live** NASA solar-storm feed and triage state
 
-### 2️⃣ NASA DONKI Space-Weather — Live Data
+### 🌞 2️⃣ NASA DONKI Space-Weather — Live Solar Storm Detection
 - `GET /api/nasa` proxies the real **NASA DONKI** feed (Solar Flares + Geomagnetic Storms), 5 s timeout, module-level cache, **HTTP 200 fallback** when NASA is rate-limited or offline
 - Real storms light up the whole cockpit — the **compound-hazard badge** (`COMPOUND COUPLING: 1.35x`) escalates when 2+ NASA HRP hazards spike together
 - Detection is deterministic from live alerts: geomagnetic storm `Kp ≥ 5` or any `M/X-class` flare
 
-### 3️⃣ On-Device Edge AI Flight Surgeon
+### 🦾 3️⃣ On-Device Edge AI Flight Surgeon
 - 100% **offline, deterministic** triage engine (`evaluateEdgeTriage`) — no network required, ever
 - Triggers on: **tachycardia** (HR > 115), **radiation-dose** (> 150 mSv cumulative), **bone loss** (< 92 %), **EVA dizziness** keywords, **solar-storm** exposure — with a heart → brain → spine priority tie-break
 - Emits a **3-step emergency protocol** with affected organ + severity in milliseconds — ready to act without Earth
 
-### 4️⃣ Persistent Onboard Black-Box Ring Buffer + DSN Sync
+### 📦 4️⃣ Persistent Onboard Black-Box Ring Buffer + DSN Sync
 - Every triage, telemetry frame and sync event is appended to a **500-slot localStorage ring buffer**
 - One tap drains it to "Earth" (DSN simulated uplink) or holds it locally when autonomous
 
-### 5️⃣ Built-In 180-Day Mars Transit Simulator
+### 🪐 5️⃣ Built-In 180-Day Mars Transit Simulator
 - Deterministic dose/bone-loss/cardio-drift math (no LLM needed) — lets the judge *see* a crew member deteriorate/respond across the journey
 - Solar-storm injector flips the entire model to emergency state instantly
 
@@ -82,7 +88,7 @@ Every subsystem in ASTRO-SENTINEL maps directly onto documented NASA Human Resea
 
 The **3D organ nodes, the edge triage rules, and the HRP hazard model** are each anchored to specific clinical literature so every alarm is clinically meaningful, not just visually dramatic.
 
-### 🚀 Alignment with Real NASA HRP Flight Investigations
+### 🌌 Alignment with Real NASA HRP Flight Investigations
 
 ASTRO-SENTINEL is a direct extension of flight investigations NASA is actually flying — translated into an always-on autonomous cockpit for deep space:
 
@@ -95,7 +101,7 @@ The result: judges aren't just seeing a demo — they're seeing **NASA's own fli
 
 ---
 
-## 🛠️ Tech Stack
+## 🧰 Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -144,7 +150,7 @@ pnpm start            # http://localhost:3000
 
 ---
 
-## 🧭 How to Use (Demo in 60 seconds)
+## 🎬 How to Use (60-Second Demo)
 
 1. **Open the app** — the 3D astronaut boots instantly; all panels live-link.
 2. **Click the organs** on the twin (or the `BRAIN / HEART / SPINE` HUD buttons) → inspect live readouts per zone.
@@ -250,9 +256,9 @@ src/
 
 ## 🏆 Why Judges Should Care
 
-> "It isn't a dashboard. It's what an astronaut would **trust with their life** in a radio-silent dead zone."
+> 🛸 *"It isn't a dashboard. It's what an astronaut would **trust with their life** in a radio-silent dead zone."*
 
-Real NASA feed. Real offline intelligence. A UI that looks like it belongs on the ISS Cupola — and works without it.
+**🛰️ Real NASA feed.** · **🧠 Real offline intelligence.** · **🩵 A UI that looks like it belongs in the ISS Cupola** — and somehow still works without one.
 
 ---
 
