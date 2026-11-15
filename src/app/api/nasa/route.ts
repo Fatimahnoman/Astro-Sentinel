@@ -2,7 +2,7 @@ import type {
   ConnectivityMode,
   SpaceWeatherAlert,
   SpaceWeatherResponse,
-} from '../../../types/telemetry';
+} from '@/types/telemetry';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -24,6 +24,7 @@ import {
 } from '@/lib/presentation';
 import { cn } from '@/lib/utils';
 import { DataChip } from '@/components/ui/Panel';
+import { WebGLBoundary } from '@/components/WebGLBoundary';
 
 const HologramTwin = dynamic(() => import('@/components/HologramTwin'), {
   ssr: false,
@@ -199,13 +200,15 @@ export function CenterStage({
         role="img"
         aria-label="Interactive 3D hologram of the astronaut's body with three organ nodes: brain, heart and spine. Use the organ buttons beside this view, or Tab then Enter, to inspect each organ."
       >
-        <HologramTwin
-          vitals={vitals}
-          protocol={protocol}
-          selectedOrgan={selectedOrgan}
-          solarStormActive={solarStormActive}
-          onSelectOrgan={onSelectOrgan}
-        />
+        <WebGLBoundary>
+          <HologramTwin
+            vitals={vitals}
+            protocol={protocol}
+            selectedOrgan={selectedOrgan}
+            solarStormActive={solarStormActive}
+            onSelectOrgan={onSelectOrgan}
+          />
+        </WebGLBoundary>
       </div>
 
       {/* corner brackets */}
