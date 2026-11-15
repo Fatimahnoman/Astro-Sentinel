@@ -1,269 +1,445 @@
-<div align="center">
+import pypandoc
+
+readme = r'''<div align="center">
 
 # 🛰️ ASTRO-SENTINEL
 
-### 🧑‍🚀 Autonomous 3D Astronaut Digital Twin & Edge AI Flight Surgeon
-**NASA Space Apps Challenge 2026** — *Houston to Mars, one neural net at a time*
+### Autonomous 3D Astronaut Digital Twin & Edge-AI Flight Surgeon
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Three.js](https://img.shields.io/badge/Three.js-R3F-black?style=for-the-badge&logo=threedotjs)](https://threejs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![NASA](https://img.shields.io/badge/NASA-Space%20Apps-0B3D91?style=for-the-badge&logo=nasa&logoColor=white)](https://spaceappschallenge.org/)
+**NASA Space Apps Challenge 2026**  
+*Houston to Mars — one neural net at a time.*
 
-> **A next-generation medical command bridge for deep-space crews — a living 3D digital twin of the astronaut, an autonomous on-board AI doctor, and a real-time NASA space-weather feed, all running where radio silence is the default.**
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![NASA API](https://img.shields.io/badge/Data-NASA%20DONKI-0B3D91?logo=nasa)](https://api.nasa.gov/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-</div>
+**A mission-control medical cockpit designed for the realities of deep-space exploration.**
 
-<div align="center">
-
-#### 🧭 Jump to — **[🔥 The Problem](#-the-problem) · [💡 Solution](#-the-solution-at-a-glance) · [🧠 Core Pillars](#-core-pillars) · [🧰 Tech Stack](#-tech-stack) · [⚡ Quick Start](#-quick-start-2-minutes) · [🎬 60-Second Demo](#-how-to-use-60-second-demo) · [✅ Requirements](#-requirements-compliance-nasa-space-apps-2026) · [🚀 Deploy](#-deploy-to-vercel-2-minutes)**
+Explore astronaut health through an interactive 3D digital twin, monitor real NASA space-weather alerts, and run an offline edge-triage engine — even when communication with Earth is unavailable.
 
 </div>
 
 ---
 
-## 🔥 The Problem
+## 🧭 Explore the Project
 
-Deep-space missions (Earth → Mars transit, ~180 days) face three brutal constraints:
-
-1. **No immediate ground support** — light-time delay makes real-time consultation with Earth doctors impossible.
-2. **Continuous, high-stress environmental hazards** — radiation storms, bone-density loss, cardiovascular deconditioning, vestibular vertigo during EVA.
-3. **Zero margin for diagnostic error** — a missed tachycardia at kilometer 40 million from home is unforgivable.
-
-Current practice relies on checklists and post-hoc radio calls. **ASTRO-SENTINEL replaces that with a continuously-on, autonomous, on-device AI flight surgeon bonded to a 3D digital twin.**
-
----
-
-## 💡 The Solution at a Glance
-
-ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees everything, everywhere, always:
-
-| Zone | What it shows |
-|------|---------------|
-| **🎛️ ① Command Header** | 🛰️ Live mission elapsed time · 👨‍🚀 crew selector (Elena, Tariq, Kenji) · 📡 Earth-Link toggle · 📦 black-box sync badge |
-| **📈 ② Left Telemetry** | 💓 Heart-rate sparkline (neon Recharts) · O₂ · Core temp · Sleep score · **NASA HRP 5 Hazards** (0–100) · 🌋 Solar-storm trigger |
-| **🧑‍🚀 ③ 3D Digital Twin** | Rotating holographic astronaut (React Three Fiber) · clickable **brain / heart / spine** nodes · scanner ring · orbit controls · per-organ HUD |
-| **🤖 ④ Edge AI Flight Surgeon** | Offline deterministic clinical rule-engine (instant edge triage) · quick-symptom chips · voice in/out · **3-step protocol** · black-box log & DSN sync |
-| **🪐 ⑤ 180-Day Timeline** | Deterministic Mars-transit simulator — drag the slider to watch radiation & bone loss grow, countermeasures adapt |
+- [🚨 The Challenge](#-the-challenge)
+- [💡 Our Approach](#-our-approach)
+- [🧠 Core Capabilities](#-core-capabilities)
+- [🧬 NASA HRP Risk Alignment](#-nasa-hrp-risk-alignment)
+- [🌌 Connection to NASA Flight Research](#-connection-to-nasa-flight-research)
+- [🏗️ Architecture](#️-architecture)
+- [🧰 Technology Stack](#-technology-stack)
+- [⚡ Getting Started](#-getting-started)
+- [🎮 60-Second Demo Guide](#-60-second-demo-guide)
+- [📋 Challenge Requirements](#-challenge-requirements)
+- [♿ Accessibility](#-accessibility)
+- [🔍 Live vs. Simulated](#-live-vs-simulated)
+- [🚀 Deployment](#-deployment)
+- [📁 Project Structure](#-project-structure)
+- [🏆 Why ASTRO-SENTINEL Matters](#-why-astro-sentinel-matters)
 
 ---
 
-## 🧠 Core Pillars
+## 🚨 The Challenge
 
-### 🧑‍🚀 1️⃣ Live 3D Astronaut Digital Twin
-- Rotating, translucent, wireframe human rendered with **React Three Fiber + drei**
-- **Brain, Heart, Spine** organ nodes — click any node on the 3D mesh (or press the HUD buttons / Tab + arrow keys) to open a live inspection panel: vitals, subsystem metrics, and an autonomous status verdict
-- Node pulse & alert rings react to the **live** NASA solar-storm feed and triage state
+A crew travelling from Earth to Mars may spend approximately **180 days in transit** — far beyond the reach of immediate medical support from Earth.
 
-### 🌞 2️⃣ NASA DONKI Space-Weather — Live Solar Storm Detection
-- `GET /api/nasa` proxies the real **NASA DONKI** feed (Solar Flares + Geomagnetic Storms), 5 s timeout, module-level cache, **HTTP 200 fallback** when NASA is rate-limited or offline
-- Real storms light up the whole cockpit — the **compound-hazard badge** (`COMPOUND COUPLING: 1.35x`) escalates when 2+ NASA HRP hazards spike together
-- Detection is deterministic from live alerts: geomagnetic storm `Kp ≥ 5` or any `M/X-class` flare
+Deep-space healthcare introduces three critical challenges:
 
-### 🦾 3️⃣ On-Device Edge AI Flight Surgeon
-- 100% **offline, deterministic** triage engine (`evaluateEdgeTriage`) — no network required, ever
-- Triggers on: **tachycardia** (HR > 115), **radiation-dose** (> 150 mSv cumulative), **bone loss** (< 92 %), **EVA dizziness** keywords, **solar-storm** exposure — with a heart → brain → spine priority tie-break
-- Emits a **3-step emergency protocol** with affected organ + severity in milliseconds — ready to act without Earth
-
-### 📦 4️⃣ Persistent Onboard Black-Box Ring Buffer + DSN Sync
-- Every triage, telemetry frame and sync event is appended to a **500-slot localStorage ring buffer**
-- One tap drains it to "Earth" (DSN simulated uplink) or holds it locally when autonomous
-
-### 🪐 5️⃣ Built-In 180-Day Mars Transit Simulator
-- Deterministic dose/bone-loss/cardio-drift math (no LLM needed) — lets the judge *see* a crew member deteriorate/respond across the journey
-- Solar-storm injector flips the entire model to emergency state instantly
-
-### 🧬 NASA HRP Specific Clinical Risks Mapping
-
-Every subsystem in ASTRO-SENTINEL maps directly onto documented NASA Human Research Program clinical risks — this is not a generic dashboard, it is a mission-risk-informed medical cockpit:
-
-| Our subsystem | NASA HRP clinical risk mitigated |
+| Challenge | Why It Matters |
 |---|---|
-| **Brain Node** | **SANS** (Spaceflight Associated Neuro-ocular Syndrome) · **Altered Sensorimotor & Vestibular Function** · **Acute Space Radiation Exposure** |
-| **Heart Node** | **Cardiovascular Adaptations** · **EVA Hypoxia / Decompression Sickness** · **Tachycardia** |
-| **Spine Node** | **Spaceflight-Induced Bone Changes** · **Reduced Cardiorespiratory & Musculoskeletal Fitness** |
-| **Edge AI Autonomous Engine** | **Risk of Inadequate Systems Operations Support** · **Inadequate Sleep & Irregular Schedule Stressors** — decisive during up to 24-minute Earth communication blackouts when ground control is unreachable |
+| 📡 **Communication delay** | With long communication delays — potentially up to 24 minutes one-way — astronauts cannot depend on real-time consultation with Earth. |
+| ☀️ **Continuous exposure risks** | Radiation events, bone-density loss, cardiovascular deconditioning, sleep disruption, and vestibular symptoms can affect crew health. |
+| 🩺 **Limited margin for error** | A developing medical issue must be identified and assessed when ground-based support is not immediately available. |
 
-The **3D organ nodes, the edge triage rules, and the HRP hazard model** are each anchored to specific clinical literature so every alarm is clinically meaningful, not just visually dramatic.
+Traditional checklists and delayed radio consultations are not enough for every time-critical scenario.
 
-### 🌌 Alignment with Real NASA HRP Flight Investigations
+**ASTRO-SENTINEL explores a more resilient approach:** an onboard medical-support concept that combines a 3D astronaut digital twin, NASA space-weather data, and a deterministic edge-triage engine.
 
-ASTRO-SENTINEL is a direct extension of flight investigations NASA is actually flying — translated into an always-on autonomous cockpit for deep space:
-
-- **Tempus Pro & Artemis II Standard Measures** — ASTRO-SENTINEL extends NASA's onboard telemedicine and standardized physiological/behavioral data-collection vision from Low Earth Orbit into deep space, delivering autonomous edge triage when real-time Earth telemedicine hits the **24-minute Mars communication delay** and ground control goes dark.
-- **ARCHeR (Artemis II)** — ASTRO-SENTINEL mirrors Artemis II's continuous monitoring of crew sleep patterns, activity, and behavioral well-being under isolation and confinement, anchoring its circadian-safe guardrails (see the **Sleep Score** vital and **Inadequate Sleep & Irregular Schedule Stressors** risk) to the same evidence NASA collects in flight.
-- **Brain Fluid Pressure & Thigh Cuff (SANS Countermeasures)** — Our 3D **Brain Node** models neuro-ocular / intracranial fluid-shift risks from SANS and recommends lower-body fluid redistribution (**Thigh Cuff** protocols) plus **B-Complex nutritional support**, exactly the countermeasures NASA is testing for long-duration missions.
-- **Spinal Health & Zero T2** — The simulator models long-duration **spinal bone-density degradation** across the full **180-day Mars transit** (see the **Bone Density** vital and **Spaceflight-Induced Bone Changes** risk) and prescribes **Zero-T2 style resistive exercise** countermeasures — the same class of hardware flying on the ISS and baselined for Artemis missions.
-
-The result: judges aren't just seeing a demo — they're seeing **NASA's own flight-proven countermeasure stack, operationalized** into an autonomous, zero-latency medical cockpit for the next frontier.
+> 🎯 **Our design goal:** keep essential monitoring and decision-support capabilities available onboard, including during communication outages.
 
 ---
 
-## 🧰 Tech Stack
+## 💡 Our Approach
 
-| Layer | Technology |
+ASTRO-SENTINEL brings the mission picture together in an interactive medical command interface.
+
+The cockpit is organized around five connected areas:
+
+| Mission area | What it provides |
 |---|---|
-| **Framework** | Next.js 15 (App Router) · React 19 · TypeScript (strict) |
-| **Styling** | Tailwind CSS v4 · custom HUD glassmorphism theme (`#050814`, `#00F0FF`, `#9D4EDD`, `#FF2A5F`) |
-| **3D** | Three.js · @react-three/fiber · @react-three/drei |
-| **Charts** | Recharts (neon heart-rate sparkline) |
-| **Service adapter** | `src/services/sentinelService.ts` — single swap point (`USE_MOCK_DATA`) |
-| **Types** | Unified single-source contract `src/types/telemetry.ts` (UI + backend agree on every field) |
-| **NASA** | DONKI `FLR` + `GST` endpoints · `DEMO_KEY` fallback · 5 s `AbortController` timeout |
+| 🎛️ **Mission Command Header** | Mission elapsed time, crew selection, Earth-Link control, and black-box sync status. |
+| 📈 **Health & Hazard Telemetry** | Heart-rate visualization, oxygen level, core temperature, sleep score, NASA HRP hazard indicators, and solar-storm status. |
+| 🧑‍🚀 **3D Astronaut Digital Twin** | An interactive holographic astronaut with selectable brain, heart, and spine inspection points. |
+| 🤖 **Edge-AI Flight Surgeon** | Offline rule-based triage, symptom shortcuts, voice interaction, emergency protocols, and event logging. |
+| 🪐 **180-Day Mission Timeline** | A deterministic Mars-transit simulation showing how selected health-risk indicators can change over time. |
+
+The result is a single interface for exploring crew status, environmental hazards, and onboard medical decision support.
 
 ---
 
-## ⚡ Quick Start (2 minutes)
+## 🧠 Core Capabilities
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/Fatimahnoman/Astro-Sentinel.git
+### 🧑‍🚀 1. Interactive 3D Astronaut Digital Twin
 
-# 2. Enter the project folder
-cd Astro-Sentinel
+A holographic astronaut model acts as the visual centre of the medical cockpit.
 
-# 3. Install dependencies (pnpm recommended)
-pnpm install          # or: npm install
+- Built with **Three.js**, **React Three Fiber**, and **Drei**.
+- Rotating, translucent wireframe-style astronaut visualization.
+- Selectable **Brain**, **Heart**, and **Spine** inspection nodes.
+- Organ-specific panels display vital readings, subsystem metrics, and status assessments.
+- Node pulses and alert rings respond to the current triage state and available solar-weather alerts.
+- Organ selection is also available through HUD controls and keyboard navigation.
 
-# 4. (Optional) add a free NASA API key — improves DONKI rate limits
-#    Get yours at https://api.nasa.gov/signup
-#    Create .env.local with:  NASA_API_KEY=your_key_here
+### ☀️ 2. Live NASA DONKI Space-Weather Monitoring
 
-# 5. Run
-pnpm dev              # http://localhost:3000
+ASTRO-SENTINEL connects to NASA's DONKI (Space Weather Database Of Notifications, Knowledge, Information) service for solar and geomagnetic event data.
+
+- A Next.js API route retrieves solar-flare (FLR) and geomagnetic-storm (GST) information.
+- A five-second request timeout helps prevent the interface from waiting indefinitely.
+- Cached responses and fallback handling help the cockpit remain usable when NASA's service is unavailable or rate-limited.
+- Geomagnetic storm alerts at **Kp ≥ 5**, or an **M- or X-class solar flare**, can trigger the application's deterministic alert logic.
+- Combined hazard indicators escalate when multiple configured NASA HRP hazard signals rise together.
+
+### 🦾 3. Offline Edge-AI Flight Surgeon
+
+The onboard triage component is a **deterministic, rule-based engine** designed to run locally without requiring an AI-model API call or an active internet connection.
+
+It evaluates configured conditions such as:
+
+- Elevated heart rate (**HR > 115 bpm**).
+- Cumulative radiation dose (**> 150 mSv**).
+- Bone-density indicator (**< 92%**).
+- EVA-related dizziness keywords.
+- Solar-storm exposure conditions.
+
+The engine applies a defined priority order — **Heart → Brain → Spine** — when resolving competing triggers.
+
+It then produces a structured, three-step response containing the affected organ and severity level.
+
+> ℹ️ This is a prototype decision-support simulation, not a certified medical device or a replacement for professional medical judgment.
+
+### 📦 4. Persistent Onboard Black-Box Logging
+
+Mission events should remain available even when communication is interrupted.
+
+- Triage events, telemetry frames, and sync events are stored in a **500-slot localStorage ring buffer**.
+- The interface can initiate a simulated uplink to the mission's Earth/DSN endpoint.
+- When the connection is unavailable or Earth-Link is disabled, records remain stored locally.
+- The logging flow demonstrates a foundation for later integration with a real onboard data service.
+
+### 🪐 5. 180-Day Mars Transit Simulator
+
+Explore how selected health indicators may evolve during a long-duration mission.
+
+- A deterministic timeline models radiation-dose accumulation, bone-density change, and cardiovascular drift.
+- Move the timeline slider to inspect different points in the simulated journey.
+- Countermeasure responses adapt according to the simulator's configured logic.
+- A solar-storm scenario can switch the simulation into an emergency state.
+
+The simulator makes long-duration mission risks easier to explore visually — without presenting simulated values as live astronaut measurements.
+
+---
+
+## 🧬 NASA HRP Risk Alignment
+
+ASTRO-SENTINEL is informed by risk areas identified by NASA's **Human Research Program (HRP)**. The prototype connects selected risks to its digital-twin inspection points and decision-support logic.
+
+| ASTRO-SENTINEL component | Related NASA HRP risk areas |
+|---|---|
+| 🧠 **Brain Node** | Spaceflight-Associated Neuro-ocular Syndrome (SANS), altered sensorimotor and vestibular function, and acute space-radiation exposure. |
+| ❤️ **Heart Node** | Cardiovascular adaptations, EVA hypoxia/decompression-related concerns, and elevated heart-rate conditions. |
+| 🦴 **Spine Node** | Spaceflight-induced bone changes and reduced cardiorespiratory and musculoskeletal fitness. |
+| 🤖 **Edge-Triage Engine** | Operational-support constraints, inadequate sleep, and irregular-schedule stressors — especially relevant when Earth communication is delayed or unavailable. |
+
+These mappings provide the rationale behind the prototype's monitoring categories and simulated alerts. They are not a claim of clinical validation or NASA endorsement.
+
+---
+
+## 🌌 Connection to NASA Flight Research
+
+The project draws inspiration from areas of human-spaceflight research and countermeasure development, including:
+
+- **Tempus Pro & Artemis II Standard Measures:** onboard health monitoring and standardized physiological and behavioural data collection.
+- **ARCHeR (Artemis II):** monitoring crew sleep, activity, and behavioural well-being during isolation and confinement.
+- **SANS research and fluid-shift countermeasures:** the Brain Node represents neuro-ocular and fluid-shift risk areas explored in spaceflight research.
+- **Spinal health and exercise countermeasures:** the transit simulator represents long-duration bone and musculoskeletal concerns and the importance of resistive exercise.
+
+These are research inspirations and conceptual alignments. ASTRO-SENTINEL does not implement or validate NASA's operational medical protocols, and it is not an official NASA system.
+
+---
+
+## 🏗️ Architecture
+
+The application keeps the user interface separate from its service and decision-logic layers.
+
+```text
+                  ┌──────────────────────────────┐
+                  │       Browser Interface      │
+                  │     Next.js App Router       │
+                  └──────────────┬───────────────┘
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │ sentinelService.ts           │
+                  │ Central UI / service boundary│
+                  └──────────────┬───────────────┘
+                                 │
+             ┌───────────────────┼────────────────────┐
+             │                   │                    │
+             ▼                   ▼                    ▼
+    ┌────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+    │ /api/nasa       │  │ evaluateEdge     │  │ syncLogsWith     │
+    │ NASA DONKI      │  │ Triage()         │  │ EarthDSN()       │
+    │ FLR + GST       │  │ Local rule engine│  │ Local log buffer │
+    └────────────────┘  └──────────────────┘  └──────────────────┘
+             │                   │                    │
+             ▼                   ▼                    ▼
+       NASA API data       Offline decisions      localStorage
 ```
 
-**Production build:**
+### Design decisions
+
+- **Single service boundary:** `src/services/sentinelService.ts` is the central connection between the UI and application services.
+- **Unified data contract:** `src/types/telemetry.ts` defines the shared telemetry structure used across the frontend and service layer.
+- **Offline-first decision logic:** `evaluateEdgeTriage()` does not depend on a remote model or network request.
+- **Resilient external-data handling:** the NASA API route includes timeout, caching, and fallback behaviour.
+- **Replaceable data source:** the `USE_MOCK_DATA` service switch supports changing the data source without coupling the UI to backend implementation details.
+
+This separation is intended to make future integration with live telemetry or a dedicated backend easier to manage.
+
+---
+
+## 🧰 Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Framework | Next.js 15 — App Router |
+| UI | React 19, TypeScript (strict mode) |
+| Styling | Tailwind CSS v4, custom mission-control HUD theme |
+| 3D visualization | Three.js, React Three Fiber, React Three Drei |
+| Charts | Recharts |
+| Space-weather data | NASA DONKI — FLR and GST endpoints |
+| Application services | `sentinelService.ts` |
+| Data contracts | `src/types/telemetry.ts` |
+| Local persistence | Browser `localStorage` |
+
+### Visual identity
+
+The interface uses a dark, high-contrast mission-control theme with cyan, violet, and alert-red accents.
+
+- Background: `#050814`
+- Cyan: `#00F0FF`
+- Violet: `#9D4EDD`
+- Alert red: `#FF2A5F`
+
+---
+
+## ⚡ Getting Started
+
+### Prerequisites
+
+- Node.js compatible with your installed Next.js version.
+- pnpm (recommended) or npm.
+- Git.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Fatimahnoman/Astro-Sentinel.git
+```
+
+### 2. Open the project directory
+
+```bash
+cd Astro-Sentinel
+```
+
+### 3. Install dependencies
+
+```bash
+pnpm install
+```
+
+Or use npm:
+
+```bash
+npm install
+```
+
+### 4. Configure the NASA API key (optional)
+
+A NASA API key is optional. The project can use `DEMO_KEY` as the default, subject to its rate limits.
+
+Get a key from [NASA API](https://api.nasa.gov/signup), then create a `.env.local` file in the project root:
+
+```env
+NASA_API_KEY=your_key_here
+```
+
+Optional endpoint override:
+
+```env
+NASA_DONKI_BASE_URL=https://api.nasa.gov/DONKI
+```
+
+### 5. Start the development server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Production build
+
 ```bash
 pnpm build
-pnpm start            # http://localhost:3000
+pnpm start
 ```
 
-**Environment variables**
+### Environment variables
 
-| Variable | Required | Default | Purpose |
+| Variable | Required? | Default | Purpose |
 |---|---|---|---|
-| `NASA_API_KEY` | ⚪ Optional | `DEMO_KEY` | NASA DONKI access (rate-limited without a key) |
-| `NASA_DONKI_BASE_URL` | ⚪ Optional | `https://api.nasa.gov/DONKI` | Test/override DONKI endpoint |
+| `NASA_API_KEY` | No | `DEMO_KEY` | NASA DONKI API access. A personal key offers higher rate limits. |
+| `NASA_DONKI_BASE_URL` | No | `https://api.nasa.gov/DONKI` | NASA DONKI endpoint override for testing or configuration. |
 
 ---
 
-## 🎬 How to Use (60-Second Demo)
+## 🎮 60-Second Demo Guide
 
-1. **Open the app** — the 3D astronaut boots instantly; all panels live-link.
-2. **Click the organs** on the twin (or the `BRAIN / HEART / SPINE` HUD buttons) → inspect live readouts per zone.
-3. **Trigger a solar storm** (left panel, big red button) — watch hazards spike, badge escalate, and an emergency protocol auto-write itself.
-4. **Tap a symptom chip** — e.g. *"Dizzy after spacewalk"* — the Edge AI returns a 3-step plan and reads it aloud (voice).
-5. **Drag the 180-day slider** → bone-density & radiation climb deterministically; countermeasures adapt.
-6. **Switch crew** (Elena / Tariq / Kenji) → different baselines & risk profiles.
-7. **Flip Earth Link** top-right → black-box logs sync to "Earth".
-8. **Switch to offline** → everything keeps working — no NASA, no network, still alive.
+Want to explore the main experience quickly? Follow this path:
 
----
+1. **Launch the cockpit** — the 3D astronaut and mission panels load.
+2. **Inspect the digital twin** — select Brain, Heart, or Spine to view its readings and status.
+3. **Trigger a solar-storm scenario** — use the solar-storm control and observe the hazard indicators and triage response.
+4. **Test the Flight Surgeon** — select a symptom shortcut, such as *“Dizzy after spacewalk”*, and inspect the generated three-step protocol.
+5. **Explore the mission timeline** — drag the 180-day slider to see the simulated health indicators change.
+6. **Switch crew profiles** — compare the Elena, Tariq, and Kenji demo profiles.
+7. **Test Earth-Link** — toggle the connection control and inspect the black-box sync behaviour.
+8. **Try offline operation** — disconnect or use the offline state to explore local triage and stored data without NASA connectivity.
 
-## 📐 Architecture & Data Flow
-
-```
- Browser (Next.js App Router)
-        │
-        ▼
- src/services/sentinelService.ts   ← ONLY UI → service boundary (the "swap point")
-        │
-        ├── /api/nasa (Route Handler) ── NASA DONKI (FLR + GST), 5s timeout, 200-always fallback
-        ├── evaluateEdgeTriage()      ── on-device medical rule engine (no net)
-        └── syncLogsWithEarthDSN()    ── localStorage black box, DSN uplink simulator
-
- src/types/telemetry.ts             ← single source of truth — frontend & backend agree on EVERY field
-```
-
-**Why this matters:** a future real backend (or a different crew roster, or a live telemetry feed) only requires **replacing one file** — the UI is 100% decoupled.
+🎯 **Demo tip:** Trigger the solar-storm scenario, inspect an organ node, and then test a symptom shortcut. This gives a quick view of the project's 3D, environmental-data, and offline-triage components.
 
 ---
 
-## ✅ Requirements Compliance (NASA Space Apps 2026)
+## 📋 NASA Space Apps Challenge 2026 — Requirements
 
-| Requirement (from challenge) | Status | How |
-|---|---|---|
-| **Real NASA data used** | ✅ | Live DONKI FLR + GST via `/api/nasa` (verified: Kp-6 storm received) |
-| **Interactive visualization** | ✅ | 3D holographic twin, orbit/zoom controls, clickable organ nodes |
-| **Human-spaceflight relevance** | ✅ | EVA, SPE/CME risks, HRP 5 Hazards, bone loss, SANS, tachycardia, DSN comms |
-| **Full-stack web app** | ✅ | Next.js full-stack (UI + serverless API route) |
-| **Runs offline / resilient** | ✅ | Deterministic fallback — never shows a blank cockpit |
-| **Docker/deployable one-liner** | ✅ | `pnpm install && pnpm dev` — deployable to Vercel/Netlify/any Node host |
-| **Clean code, documented, typed** | ✅ | Strict TypeScript, unified contract, zero build/type errors |
-| **Accessible & inclusive** | ✅ | Keyboard organ navigation (Tab/Arrows), `aria-live` announcements, visible focus rings, plain-English copy |
-
----
-
-## ♿ Accessibility (a first-class citizen, not an afterthought)
-
-- **Keyboard-first**: Tab through organ buttons, `←/→` cycles organs, `Enter/Space` selects
-- **Screen readers**: every organ button announces its live reading via `role="status" aria-live="polite"`; the 3D canvas exposes a descriptive `role="img"`
-- **Visible focus**: `:focus-visible` cyan ring everywhere; 44px+ touch targets
-- **Reduced motion** respected via `prefers-reduced-motion` for ambient animations
-- **Plain-English UI** — zero jargon walls; every icon has a tooltip with the plain-language meaning
-
----
-
-## ⚠️ What's Real vs Simulated (honesty section)
-
-| Feature | Status |
+| Requirement area | Implementation in ASTRO-SENTINEL |
 |---|---|
-| NASA space-weather alerts | **Live** (DONKI, real Kp-6 storm observed in testing) |
-| Edge AI triage engine | **Real** (deterministic rule-based, fully on-device) |
-| Black-box logs & sync | **Real** (localStorage read/write verified) |
-| Crew vitals & hazard curves | **Deterministic simulation** — no human wearable feed exists; formulas model real NASA HRP guidance |
-| DSN uplink | **Simulated** — no `/api/dsn` ground station in scope |
-| Voice input/output | **Real** Web Speech API (Chrome/Edge); graceful degradation elsewhere |
-
-Simulation is the standard for human-physiology in hackathon contexts — and the architecture swaps in live sensors without touching a line of UI.
+| 🌍 Real NASA data | NASA DONKI solar-flare and geomagnetic-storm data through `/api/nasa`. |
+| 🧊 Interactive visualization | 3D astronaut digital twin, orbit/zoom controls, and selectable organ nodes. |
+| 🚀 Human-spaceflight relevance | EVA-related scenarios, solar-weather alerts, HRP risk mapping, bone-loss simulation, SANS-related risk areas, and communication constraints. |
+| 🖥️ Full-stack application | Next.js application with frontend and server-side API route. |
+| 📡 Offline resilience | Local deterministic triage and fallback data behaviour. |
+| 🧩 Deployability | Standard Next.js build and deployment workflow. |
+| 🧹 Typed architecture | Strict TypeScript and a shared telemetry contract. |
+| ♿ Accessibility | Keyboard navigation, screen-reader announcements, visible focus states, and reduced-motion support. |
 
 ---
 
-## 🚢 Deploy to Vercel (2 minutes)
+## ♿ Accessibility
 
-1. [vercel.com](https://vercel.com) → **New Project** → import `Fatimahnoman/Astro-Sentinel`
-2. Framework auto-detects **Next.js** ✓
-3. (Optional) Add env var `NASA_API_KEY`
-4. **Deploy** → get a public URL
+Accessibility is part of the interface design, not an afterthought.
 
-Works out-of-the-box — no build config needed.
+- **Keyboard navigation:** move through organ controls with Tab; use arrow keys to cycle and Enter/Space to select.
+- **Screen-reader support:** organ controls announce live readings through status regions, and the 3D canvas provides a descriptive accessible role.
+- **Visible focus:** keyboard focus indicators help users identify the active control.
+- **Touch-friendly controls:** interactive targets are designed with a 44px-or-larger target size.
+- **Reduced motion:** ambient animations respect the `prefers-reduced-motion` setting.
+- **Clear language:** tooltips and plain-English labels help explain interface indicators.
+
+---
+
+## 🔍 Live vs. Simulated
+
+Transparency matters — especially in a project involving astronaut health.
+
+| Feature | Current implementation |
+|---|---|
+| ☀️ NASA space-weather alerts | **Live external data** from NASA DONKI when the service is reachable; fallback behaviour is used if unavailable. |
+| 🤖 Edge-AI triage | **Local deterministic rule engine**; does not require a network connection. |
+| 📦 Black-box event storage | **Local persistence** using browser `localStorage`. |
+| 📈 Crew vitals and hazard curves | **Deterministic simulation**; not connected to real astronaut wearables or live crew telemetry. |
+| 📡 DSN / Earth uplink | **Simulated**; this project does not connect to an operational Deep Space Network ground station. |
+| 🎙️ Voice interaction | Uses the browser Web Speech API where supported, with graceful degradation in other environments. |
+
+**Important:** ASTRO-SENTINEL is a hackathon prototype and research-inspired demonstration. Its simulated physiology, rule-based triage, and countermeasure suggestions are not clinically validated and must not be used for real medical decisions.
+
+---
+
+## 🚀 Deployment
+
+ASTRO-SENTINEL can be deployed to a Node.js-compatible hosting platform. For Vercel:
+
+1. Open [Vercel](https://vercel.com/).
+2. Select **Add New → Project**.
+3. Import `Fatimahnoman/Astro-Sentinel` from GitHub.
+4. Allow Vercel to detect the Next.js framework.
+5. Add `NASA_API_KEY` if you want to use a personal NASA API key.
+6. Select **Deploy**.
+
+The application uses a standard Next.js project structure and does not require a custom build configuration for a typical Vercel deployment.
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 src/
 ├── app/
-│   ├── page.tsx              # 4-zone mission control shell
-│   ├── layout.tsx
-│   └── api/nasa/route.ts     # NASA DONKI proxy (FLR + GST)
-├── components/               # 4 zones + holographic twin + quick actions
-├── hooks/                    # useMissionControl (single state owner)
+│   ├── page.tsx                  # Mission-control interface
+│   ├── layout.tsx                # Application layout
+│   └── api/
+│       └── nasa/
+│           └── route.ts          # NASA DONKI API proxy
+├── components/                   # Cockpit zones, 3D twin, and controls
+├── hooks/
+│   └── ...                       # Mission-control state management
 ├── lib/
-│   ├── edgeMedicalAI.ts      # on-device triage + hazard math
-│   ├── storageSync.ts        # black-box ring buffer + DSN sync
-│   ├── mockTelemetry.ts      # deterministic offline model
-│   └── presentation.ts       # organ/severity metadata
-├── services/sentinelService.ts   # THE swap point (USE_MOCK_DATA)
-└── types/telemetry.ts        # unified frontend+backend contract
+│   ├── edgeMedicalAI.ts          # Local triage and hazard logic
+│   ├── storageSync.ts            # Black-box buffer and DSN sync simulation
+│   ├── mockTelemetry.ts          # Deterministic demo telemetry
+│   └── presentation.ts           # Organ and severity metadata
+├── services/
+│   └── sentinelService.ts        # Central service boundary / data-source switch
+└── types/
+    └── telemetry.ts             # Shared telemetry data contract
 ```
 
 ---
 
-## 🏆 Why Judges Should Care
+## 🏆 Why ASTRO-SENTINEL Matters
 
-> 🛸 *"It isn't a dashboard. It's what an astronaut would **trust with their life** in a radio-silent dead zone."*
+Deep-space exploration demands systems that can keep providing useful support when communication, time, and resources are constrained.
 
-**🛰️ Real NASA feed.** · **🧠 Real offline intelligence.** · **🩵 A UI that looks like it belongs in the ISS Cupola** — and somehow still works without one.
+ASTRO-SENTINEL brings together three ideas:
+
+- 🧑‍🚀 **A human-centred 3D digital twin** to make astronaut health information easier to explore.
+- ☀️ **Real NASA space-weather data** to connect environmental events with mission-risk awareness.
+- 🤖 **Offline edge decision support** to demonstrate how essential local logic can remain available during communication gaps.
+
+> **“It isn't just a dashboard — it's a concept for medical decision support when Earth is out of reach.”**
+
+**Built for NASA Space Apps Challenge 2026** 🇺🇸  
+**Repository:** [github.com/Fatimahnoman/Astro-Sentinel](https://github.com/Fatimahnoman/Astro-Sentinel)
+
+*Explore the cockpit. Trigger a scenario. See how ASTRO-SENTINEL responds.*
 
 ---
 
 <div align="center">
 
-**Built for NASA Space Apps Challenge 2026** 🇺🇸 · MIT License · `pnpm dev` and explore the future of space medicine
+### 🛰️ ASTRO-SENTINEL
+**Designed for the distance between Earth and Mars.**
 
 </div>
+'''
+
+output_path = "/mnt/data/README_ASTRO_SENTINEL.md"
+pypandoc.convert_text(readme, "md", format="md", outputfile=output_path, extra_args=["--standalone"])
+print(f"Created: {output_path}")
