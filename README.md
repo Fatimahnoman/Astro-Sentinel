@@ -69,6 +69,19 @@ ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees e
 - Deterministic dose/bone-loss/cardio-drift math (no LLM needed) — lets the judge *see* a crew member deteriorate/respond across the journey
 - Solar-storm injector flips the entire model to emergency state instantly
 
+### 🧬 NASA HRP Specific Clinical Risks Mapping
+
+Every subsystem in ASTRO-SENTINEL maps directly onto documented NASA Human Research Program clinical risks — this is not a generic dashboard, it is a mission-risk-informed medical cockpit:
+
+| Our subsystem | NASA HRP clinical risk mitigated |
+|---|---|
+| **Brain Node** | **SANS** (Spaceflight Associated Neuro-ocular Syndrome) · **Altered Sensorimotor & Vestibular Function** · **Acute Space Radiation Exposure** |
+| **Heart Node** | **Cardiovascular Adaptations** · **EVA Hypoxia / Decompression Sickness** · **Tachycardia** |
+| **Spine Node** | **Spaceflight-Induced Bone Changes** · **Reduced Cardiorespiratory & Musculoskeletal Fitness** |
+| **Edge AI Autonomous Engine** | **Risk of Inadequate Systems Operations Support** · **Inadequate Sleep & Irregular Schedule Stressors** — decisive during up to 24-minute Earth communication blackouts when ground control is unreachable |
+
+The **3D organ nodes, the edge triage rules, and the HRP hazard model** are each anchored to specific clinical literature so every alarm is clinically meaningful, not just visually dramatic.
+
 ---
 
 ## 🛠️ Tech Stack
