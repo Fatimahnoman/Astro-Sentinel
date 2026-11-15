@@ -76,6 +76,12 @@ export function FlightSurgeonConsole({
     useVoiceInput(handleTranscript);
   const { isSupported: speechSupported } = useSpeechSynthesis(voiceEnabled, protocol);
 
+  const engineLabel =
+    protocol?.engine === 'online'
+      ? `ONLINE AI · ${protocol.provider ?? 'MULTI-LLM'}`
+      : 'OFFLINE EDGE ENGINE · 0ms';
+  const engineOnline = protocol?.engine === 'online';
+
   const submitQuery = useCallback(
     (value: string) => {
       const trimmed = value.trim();
@@ -107,23 +113,36 @@ export function FlightSurgeonConsole({
           kicker="ON-BOARD AI DOCTOR — ALWAYS AVAILABLE"
           accent="violet"
           right={
-            <DataChip tone="violet">
-              <span className="h-1 w-1 rounded-full bg-mint animate-sentinel-blink" />
-              ON LOCAL
+            <DataChip tone={engineOnline ? 'mint' : 'violet'}>
+              <span
+                className={cn(
+                  'h-1 w-1 rounded-full',
+                  engineOnline ? 'bg-mint' : 'bg-violet',
+                  'animate-sentinel-blink',
+                )}
+              />
+              {engineLabel}
             </DataChip>
           }
         />
 
         <div
           className="mt-2.5 flex items-center justify-between gap-2 rounded-lg border border-violet/15 bg-violet/[0.045] px-2 py-1.5"
-          title="No internet needed — the AI runs on the spacecraft itself"
+          title={engineOnline
+            ? 'Online Multi-LLM chain: OpenRouter → Gemini → Grok (4s each, auto-failover)'
+            : 'No internet needed — the 12-protocol offline edge engine runs on the spacecraft itself'}
         >
           <div className="flex items-center gap-1.5 font-mono text-[7.5px] uppercase tracking-[0.12em] text-violet/80">
             <Cpu className="h-3 w-3" />
-            SENTINEL-7B · 4-BIT QUANT
+            {engineOnline ? `EDGE MODEL v2.0 · ${protocol?.provider ?? 'OPENROUTER'} ONLINE` : 'EDGE ENGINE v2.0 · 12 PROTOCOLS'}
           </div>
-          <span className="font-mono text-[7px] uppercase tracking-[0.14em] text-mint">
-            AUTONOMY LOCKED
+          <span
+            className={cn(
+              'font-mono text-[7px] uppercase tracking-[0.14em]',
+              engineOnline ? 'text-mint' : 'text-mint',
+            )}
+          >
+            {engineOnline ? 'CLOUD READY · 4s MAX' : 'AUTONOMY LOCKED'}
           </span>
         </div>
 

@@ -60,6 +60,10 @@ export interface TriageProtocol {
   timestamp: string;
   /** True after the protocol has been acknowledged by Earth DSN. */
   synced: boolean;
+  /** 'online' = Multi-LLM chain (OpenRouter → Gemini → Grok); 'offline' = on-device edge engine. */
+  engine?: 'online' | 'offline';
+  /** Provider label when engine === 'online' (e.g. OPENROUTER, GEMINI, GROK). */
+  provider?: string;
 }
 
 export interface SpaceWeatherAlert {

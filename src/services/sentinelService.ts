@@ -11,7 +11,9 @@
  *    fetchCrewProfiles()          → deterministic crew roster (no network)
  *    fetchTelemetrySnapshot()     → /api/nasa (live NASA DONKI) + local edge
  *                                   math (calculateLiveHazardsAndVitals)
- *    executeFlightSurgeonTriage() → on-device rule engine (evaluateEdgeTriage)
+ *    executeFlightSurgeonTriage() → Multi-LLM chain (/api/triage → OpenRouter →
+ *                                   Gemini → Grok, 4s each) with on-device offline
+ *                                   edge fallback (evaluateEdgeTriage, 0ms)
  *    syncBlackBoxLogs()           → localStorage black box + DSN sync
  *
  *  Offline fallback: any network failure degrades to deterministic local
@@ -221,9 +223,53 @@ export async function fetchTelemetrySnapshot(
   }
 }
 
+const HEALTH_TIMEOUT_MS = 4500; // slightly above the 4s provider timeout
+const ORGAN_LOWER: Record<string, 'brain' | 'heart' | 'spine'> = {
+  BRAIN: 'brain',
+  HEART: 'heart',
+  SPINE: 'spine',
+};
+
+/** Online Multi-LLM result shape returned by /api/triage (or fallback:true). */
+interface OnlineTriageResult {
+  severity: 'NOMINAL' | 'WARNING' | 'CRITICAL';
+  organ: 'BRAIN' | 'HEART' | 'SPINE';
+  headline: string;
+  steps: string[];
+  provider: string;
+}
+
+function toOnlineProtocol(raw: OnlineTriageResult): TriageProtocol {
+  const steps = [raw.steps[0], raw.steps[1], raw.steps[2]] as [string, string, string];
+  return {
+    severity: raw.severity,
+    affectedOrgan: ORGAN_LOWER[raw.organ] ?? 'brain',
+    diagnosis: raw.headline,
+    steps,
+    timestamp: new Date().toISOString(),
+    synced: false,
+    engine: 'online',
+    provider: raw.provider,
+  };
+}
+
+function offlineProtocol(
+  query: string,
+  vitals: AstronautVitals,
+  solarStormActive: boolean,
+): TriageProtocol {
+  return {
+    ...evaluateEdgeTriage(query, vitals, solarStormActive),
+    engine: 'offline',
+  };
+}
+
 /**
- * Edge AI Flight Surgeon — fully on-device, 4-bit, zero uplink.
- * Saves every triage to the black box for the DSN sync worker.
+ * AI Flight Surgeon. Online path (when the device reports connectivity):
+ * POSTs to /api/triage which runs OpenRouter → Gemini → Grok with a 4s
+ * timeout each. Any failure, `{fallback:true}`, or `navigator.onLine === false`
+ * drops straight to the on-device offline edge engine — zero user errors.
+ * Every triage is saved to the black box either way.
  */
 export async function executeFlightSurgeonTriage(
   query: string,
@@ -231,13 +277,73 @@ export async function executeFlightSurgeonTriage(
   solarStormActive: boolean,
   mode: ConnectivityMode,
 ): Promise<TriageProtocol> {
-  const protocol = evaluateEdgeTriage(query, vitals, solarStormActive);
+  let protocol: TriageProtocol | null = null;
+
+  const online =
+    typeof navigator === 'undefined' || navigator.onLine !== false;
+
+  if (online && query.trim().length > 0) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
+    try {
+      const response = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          symptom: query,
+          vitals,
+          hazards: {
+            radiation: Math.round(
+              Math.min(100, (vitals.cumulativeRadiation / 250) * 100),
+            ),
+            isolation: 40,
+            distanceFromEarth: 30,
+            gravityFields: 40,
+            hostileEnvironment: solarStormActive ? 70 : 30,
+          },
+          missionDay: 90,
+          crewMember: `${vitals.name} · ${vitals.role}`,
+        }),
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as OnlineTriageResult & {
+          fallback?: boolean;
+        };
+        if (
+          data &&
+          data.fallback !== true &&
+          (data.severity === 'NOMINAL' ||
+            data.severity === 'WARNING' ||
+            data.severity === 'CRITICAL') &&
+          (data.organ === 'BRAIN' || data.organ === 'HEART' || data.organ === 'SPINE') &&
+          Array.isArray(data.steps) &&
+          data.steps.length >= 3 &&
+          typeof data.headline === 'string'
+        ) {
+          protocol = toOnlineProtocol(data);
+        }
+      }
+    } catch {
+      protocol = null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  if (!protocol) {
+    protocol = offlineProtocol(query, vitals, solarStormActive);
+  }
 
   safeSave({
     type: 'TRIAGE',
     payload: {
       query,
       mode,
+      engine: protocol.engine,
+      provider: protocol.provider ?? null,
       severity: protocol.severity,
       affectedOrgan: protocol.affectedOrgan,
       diagnosis: protocol.diagnosis,
