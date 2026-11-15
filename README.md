@@ -39,7 +39,7 @@ ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees e
 | **① Command Header** | Live mission elapsed time · crew selector (Elena, Tariq, Kenji) · Earth-Link toggle · black-box sync badge |
 | **② Left Telemetry** | Heart-rate sparkline (neon Recharts) · SpO₂ · Core temp · Sleep score · **NASA HRP 5 Hazards** (0–100) · Solar-storm trigger |
 | **③ 3D Digital Twin** | Rotating holographic astronaut (React Three Fiber) · clickable **brain / heart / spine** nodes · scanner ring · orbit controls · per-organ HUD |
-| **④ Edge AI Flight Surgeon** | Offline 4-bit LLM-grade reasoning · quick-symptom chips · voice in/out · **3-step protocol** · black-box log & DSN sync |
+| **④ Edge AI Flight Surgeon** | Offline deterministic clinical rule-engine (instant edge triage) · quick-symptom chips · voice in/out · **3-step protocol** · black-box log & DSN sync |
 | **⑤ 180-Day Timeline** | Deterministic Mars-transit simulator — drag the slider to watch radiation & bone loss grow, countermeasures adapt |
 
 ---
@@ -61,7 +61,7 @@ ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees e
 - Triggers on: **tachycardia** (HR > 115), **radiation-dose** (> 150 mSv cumulative), **bone loss** (< 92 %), **EVA dizziness** keywords, **solar-storm** exposure — with a heart → brain → spine priority tie-break
 - Emits a **3-step emergency protocol** with affected organ + severity in milliseconds — ready to act without Earth
 
-### 4️⃣ Tamper-Evident Black Box + DSN Sync
+### 4️⃣ Persistent Onboard Black-Box Ring Buffer + DSN Sync
 - Every triage, telemetry frame and sync event is appended to a **500-slot localStorage ring buffer**
 - One tap drains it to "Earth" (DSN simulated uplink) or holds it locally when autonomous
 
@@ -88,18 +88,20 @@ ASTRO-SENTINEL is a **4-zone mission-control HUD** where the crew surgeon sees e
 ## ⚡ Quick Start (2 minutes)
 
 ```bash
-# 1. Clone
+# 1. Clone the repository
 git clone https://github.com/Fatimahnoman/Astro-Sentinel.git
+
+# 2. Enter the project folder
 cd Astro-Sentinel
 
-# 2. Install dependencies (pnpm recommended)
+# 3. Install dependencies (pnpm recommended)
 pnpm install          # or: npm install
 
-# 3. (Optional) add a free NASA API key — improves DONKI rate limits
+# 4. (Optional) add a free NASA API key — improves DONKI rate limits
 #    Get yours at https://api.nasa.gov/signup
 #    Create .env.local with:  NASA_API_KEY=your_key_here
 
-# 4. Run
+# 5. Run
 pnpm dev              # http://localhost:3000
 ```
 
