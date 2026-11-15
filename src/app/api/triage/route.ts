@@ -3,9 +3,11 @@
  * -------------------------------------------------
  * NASA Flight Surgeon — online inference endpoint with automatic failover:
  *
- *   1) OpenRouter  (OPENROUTER_API_KEY)  → google/gemini-2.0-flash-001
- *   2) Google      (GEMINI_API_KEY)      → gemini-2.0-flash : generateContent
- *   3) xAI Grok    (GROK_API_KEY / XAI_API_KEY) → grok-2-latest
+ *   1) OpenRouter  (OPENROUTER_API_KEY)  → google/gemma-4-31b-it:free
+ *   2) Google      (GEMINI_API_KEY)      → gemini-2.5-flash : generateContent
+ *   3) xAI Grok    (GROK_API_KEY / XAI_API_KEY) → grok-2-latest on api.x.ai;
+ *      keys starting with `gsk_` (Groq) are auto-routed to api.groq.com with
+ *      openai/gpt-oss-120b, since Groq keys are OpenAI-compatible.
  *
  * Every provider is capped at 4 seconds. If all fail, or the request is
  * malformed, we answer HTTP 200 with `{ fallback: true }` — the client then
@@ -163,10 +165,17 @@ async function postJson(
       signal: controller.signal,
       cache: 'no-store',
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`[triage:${provider}] HTTP ${response.status}`);
+      return null;
+    }
     const payload = (await response.json()) as unknown;
-    return coerceTriage(extractJson(extractProviderText(payload, provider)), provider);
-  } catch {
+    const text = extractProviderText(payload, provider);
+    const coerced = coerceTriage(extractJson(text), provider);
+    if (!coerced) console.error(`[triage:${provider}] unparseable model output`);
+    return coerced;
+  } catch (err) {
+    console.error(`[triage:${provider}] exception:`, err instanceof Error ? err.message : err);
     return null;
   } finally {
     clearTimeout(timer);
@@ -201,14 +210,13 @@ async function callOpenRouter(userPrompt: string): Promise<OnlineTriage | null> 
       'X-Title': 'ASTRO-SENTINEL',
     },
     {
-      model: 'google/gemini-2.0-flash-001',
+      model: 'google/gemma-4-31b-it:free',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.2,
-      max_tokens: 400,
-      response_format: { type: 'json_object' },
+      max_tokens: 1024,
     },
     'OPENROUTER',
   );
@@ -218,15 +226,16 @@ async function callGemini(userPrompt: string): Promise<OnlineTriage | null> {
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) return null;
   return postJson(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,
     {},
     {
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 400,
+        maxOutputTokens: 2048,
         responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 0 },
       },
     },
     'GEMINI',
@@ -236,6 +245,26 @@ async function callGemini(userPrompt: string): Promise<OnlineTriage | null> {
 async function callGrok(userPrompt: string): Promise<OnlineTriage | null> {
   const key = (process.env.GROK_API_KEY ?? process.env.XAI_API_KEY)?.trim();
   if (!key) return null;
+
+  // Groq keys (gsk_*) are OpenAI-compatible on api.groq.com — route them there.
+  if (key.startsWith('gsk_')) {
+    return postJson(
+      'https://api.groq.com/openai/v1/chat/completions',
+      { Authorization: `Bearer ${key}` },
+      {
+        model: 'openai/gpt-oss-120b',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 1024,
+      },
+      'GROQ',
+    );
+  }
+
+  // Native xAI Grok
   return postJson(
     'https://api.x.ai/v1/chat/completions',
     { Authorization: `Bearer ${key}` },
@@ -246,8 +275,7 @@ async function callGrok(userPrompt: string): Promise<OnlineTriage | null> {
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.2,
-      max_tokens: 400,
-      response_format: { type: 'json_object' },
+      max_tokens: 1024,
     },
     'GROK',
   );
