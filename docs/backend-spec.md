@@ -62,15 +62,15 @@ src/types/telemetry.ts                 ← Task 1 single source of truth
 - **Deterministic edge AI**: no network calls, no Node-only APIs, safe to run client-side.
 - **Resilient NASA route**: always HTTP 200; never throws to the client; falls back to the last successful DONKI payload or an empty cached payload.
 - **SSR-safe storage**: every `localStorage` access is guarded by `typeof window !== 'undefined'` and `try/catch`.
-- **No secrets in client code**: `NASA_API_KEY` is read only inside the route handler; fallback key is `DEMO_KEY`.
+- **No secrets in client code**: `NASA_API_KEY` is read only inside the route handler; fallback key is `DEMO_KEY (legacy; DONKI now open access)`.
 - **Pure contract module**: `telemetry.ts` imports nothing.
 - **Strict TypeScript**: `strict: true`; no `any` in public APIs.
 
 ### Environment variables
 
 ```bash
-NASA_API_KEY=your_key_here          # optional; defaults to DEMO_KEY
-NASA_DONKI_BASE_URL=                # optional test override; defaults to https://api.nasa.gov/DONKI
+NASA_API_KEY=your_key_here          # optional; defaults to DEMO_KEY (legacy; DONKI now open access)
+NASA_DONKI_BASE_URL=                # optional test override; defaults to https://ccmc.gsfc.nasa.gov/DONKI-API/get
 ```
 
 ---
@@ -219,8 +219,8 @@ export interface DsnSyncResult {
 - Fetch both DONKI endpoints over a rolling **30-day window**:
   - `GET {BASE}/FLR?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&api_key={KEY}`
   - `GET {BASE}/GST?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&api_key={KEY}`
-- `BASE` defaults to `https://api.nasa.gov/DONKI` and may be overridden by `NASA_DONKI_BASE_URL` for testing.
-- API key defaults to `DEMO_KEY`.
+- `BASE` defaults to `https://ccmc.gsfc.nasa.gov/DONKI-API/get` and may be overridden by `NASA_DONKI_BASE_URL` for testing.
+- API key defaults to `DEMO_KEY (legacy; DONKI now open access)`.
 
 ### Timeout and resilience
 
@@ -609,7 +609,7 @@ The five backend files were typechecked and production-built with the project to
 
 1. **No frontend source is present**, so the type shapes in §3 are the proposed canonical contract. If the frontend already defines these differently, reconcile before coding.
 2. **Next.js 15 toolchain is now provisioned**; Task 0 is complete and both typecheck and production build pass.
-3. **DONKI availability and `DEMO_KEY` rate limits** are outside our control; the 200 fallback path is the mitigation.
+3. **DONKI availability and `DEMO_KEY (legacy; DONKI now open access)` rate limits** are outside our control; the 200 fallback path is the mitigation.
 4. **CSA/NASA formulas are approximations** for a hackathon simulation, not clinical or mission-certified guidance. They are documented as such in code comments only where necessary (no comments added unless requested).
 5. **DSN sync is simulated locally** because no `/api/dsn` endpoint is in scope. Public API remains compatible if one is added later.
 6. **`AstronautVitals.updatedAt` and all `createdAt`/timestamp fields** use `new Date().toISOString()`; tests must not require exact values.

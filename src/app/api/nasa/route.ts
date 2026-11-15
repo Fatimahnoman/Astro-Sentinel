@@ -7,7 +7,10 @@ import type {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const DEFAULT_BASE_URL = 'https://api.nasa.gov/DONKI';
+// NOTE: NASA DONKI migrated on 2026-09-30. The public data API now lives at
+// https://ccmc.gsfc.nasa.gov/DONKI-API/get/<event> (open access, api_key ignored).
+// The legacy https://api.nasa.gov/DONKI/* paths are dead (404/403).
+const DEFAULT_BASE_URL = 'https://ccmc.gsfc.nasa.gov/DONKI-API/get';
 const REQUEST_TIMEOUT_MS = 5000;
 const LOOKBACK_DAYS = 30;
 
