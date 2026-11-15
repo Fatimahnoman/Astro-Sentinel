@@ -82,6 +82,17 @@ Every subsystem in ASTRO-SENTINEL maps directly onto documented NASA Human Resea
 
 The **3D organ nodes, the edge triage rules, and the HRP hazard model** are each anchored to specific clinical literature so every alarm is clinically meaningful, not just visually dramatic.
 
+### 🚀 Alignment with Real NASA HRP Flight Investigations
+
+ASTRO-SENTINEL is a direct extension of flight investigations NASA is actually flying — translated into an always-on autonomous cockpit for deep space:
+
+- **Tempus Pro & Artemis II Standard Measures** — ASTRO-SENTINEL extends NASA's onboard telemedicine and standardized physiological/behavioral data-collection vision from Low Earth Orbit into deep space, delivering autonomous edge triage when real-time Earth telemedicine hits the **24-minute Mars communication delay** and ground control goes dark.
+- **ARCHeR (Artemis II)** — ASTRO-SENTINEL mirrors Artemis II's continuous monitoring of crew sleep patterns, activity, and behavioral well-being under isolation and confinement, anchoring its circadian-safe guardrails (see the **Sleep Score** vital and **Inadequate Sleep & Irregular Schedule Stressors** risk) to the same evidence NASA collects in flight.
+- **Brain Fluid Pressure & Thigh Cuff (SANS Countermeasures)** — Our 3D **Brain Node** models neuro-ocular / intracranial fluid-shift risks from SANS and recommends lower-body fluid redistribution (**Thigh Cuff** protocols) plus **B-Complex nutritional support**, exactly the countermeasures NASA is testing for long-duration missions.
+- **Spinal Health & Zero T2** — The simulator models long-duration **spinal bone-density degradation** across the full **180-day Mars transit** (see the **Bone Density** vital and **Spaceflight-Induced Bone Changes** risk) and prescribes **Zero-T2 style resistive exercise** countermeasures — the same class of hardware flying on the ISS and baselined for Artemis missions.
+
+The result: judges aren't just seeing a demo — they're seeing **NASA's own flight-proven countermeasure stack, operationalized** into an autonomous, zero-latency medical cockpit for the next frontier.
+
 ---
 
 ## 🛠️ Tech Stack
