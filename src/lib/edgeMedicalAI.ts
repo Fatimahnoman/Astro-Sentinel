@@ -26,6 +26,25 @@ const BONE_LOSS_PCT_PER_DAY = 0.05;
 const STORM_BONE_PENALTY_PCT = 0.5;
 const CAREER_RADIATION_LIMIT_MSV = 250;
 
+/**
+ * Per-crew risk multipliers — commander, flight engineer and specialist do not
+ * absorb the same deep-space dose or stress identically. Mirrors the crew seed
+ * data in mockTelemetry (CDR 0.90 / FE 1.18 / MS 0.78 response curves).
+ */
+const CREW_RISK_PROFILE: Record<
+  string,
+  { radiation: number; isolation: number; gravity: number; bone: number }
+> = {
+  CDR: { radiation: 0.9, isolation: 0.8, gravity: 0.85, bone: 0.9 },
+  FE: { radiation: 1.2, isolation: 1.05, gravity: 1.2, bone: 1.15 },
+  MS: { radiation: 0.78, isolation: 1.4, gravity: 0.72, bone: 0.72 },
+};
+
+function crewKey(crewId: string): string {
+  const prefix = crewId.split('-')[0]?.toUpperCase();
+  return prefix && prefix in CREW_RISK_PROFILE ? prefix : 'CDR';
+}
+
 const SEVERITY_RANK: Record<TriageSeverity, number> = {
   NOMINAL: 0,
   WARNING: 1,
@@ -182,11 +201,18 @@ export function calculateLiveHazardsAndVitals(
     ? Math.max(0, Math.round(missionDay))
     : 0;
 
+  const profile = CREW_RISK_PROFILE[crewKey(baseVitals.crewId)] ?? {
+    radiation: 1,
+    isolation: 1,
+    gravity: 1,
+    bone: 1,
+  };
+
   const doseRate = solarStormActive
     ? STORM_DOSE_RATE_MSV_PER_DAY
     : BASE_DOSE_RATE_MSV_PER_DAY;
   const cumulativeRadiation = round1(
-    baseVitals.cumulativeRadiation + doseRate * safeMissionDay
+    baseVitals.cumulativeRadiation + doseRate * safeMissionDay * profile.radiation
   );
 
   const vitals: AstronautVitals = {
@@ -215,15 +241,19 @@ export function calculateLiveHazardsAndVitals(
       )
     ),
     sleepScore: clamp(
-      Math.round(baseVitals.sleepScore - 0.05 * safeMissionDay - (solarStormActive ? 6 : 0)),
+      Math.round(
+        baseVitals.sleepScore -
+          0.05 * safeMissionDay -
+          (solarStormActive ? 6 * profile.isolation : 0)
+      ),
       20,
       100
     ),
     boneDensity: round1(
       clamp(
         baseVitals.boneDensity -
-          BONE_LOSS_PCT_PER_DAY * safeMissionDay -
-          (solarStormActive ? STORM_BONE_PENALTY_PCT : 0),
+          BONE_LOSS_PCT_PER_DAY * safeMissionDay * profile.bone -
+          (solarStormActive ? STORM_BONE_PENALTY_PCT * profile.bone : 0),
         60,
         120
       )
@@ -240,11 +270,27 @@ export function calculateLiveHazardsAndVitals(
 
   const hazards: NasaHazardStatus = {
     radiation,
-    isolation: clamp(Math.round(safeMissionDay * 0.35), 0, 100),
-    distanceFromEarth: clamp(Math.round((safeMissionDay / 365) * 100), 0, 100),
-    gravityFields: clamp(Math.round(safeMissionDay * 0.45), 0, 100),
+    isolation: clamp(
+      Math.round(safeMissionDay * 0.35 * profile.isolation),
+      0,
+      100
+    ),
+    distanceFromEarth: clamp(
+      Math.round((safeMissionDay / 365) * 100 * (0.75 + profile.radiation * 0.25)),
+      0,
+      100
+    ),
+    gravityFields: clamp(
+      Math.round(safeMissionDay * 0.45 * profile.gravity),
+      0,
+      100
+    ),
     hostileEnvironment: clamp(
-      Math.round(20 + safeMissionDay * 0.15 + (solarStormActive ? 40 : 0)),
+      Math.round(
+        20 +
+          safeMissionDay * 0.15 * profile.radiation +
+          (solarStormActive ? 40 * profile.radiation : 0)
+      ),
       0,
       100
     ),
