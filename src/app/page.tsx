@@ -4,6 +4,8 @@ import { AlertTriangle, RotateCcw, X } from 'lucide-react';
 import { HeaderBar } from '@/components/HeaderBar';
 import { LeftPanel } from '@/components/LeftPanel';
 import { CenterStage } from '@/components/CenterStage';
+import { HazardsPanel } from '@/components/HazardsPanel';
+import { BlackBoxPanel } from '@/components/BlackBoxPanel';
 import { FlightSurgeonConsole } from '@/components/FlightSurgeonConsole';
 import { TimelineSimulator } from '@/components/TimelineSimulator';
 import { QuickActions } from '@/components/QuickActions';
@@ -84,21 +86,19 @@ export default function MissionControlPage() {
         />
       ) : null}
 
-      <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col gap-3 px-3 py-3 sm:px-4">
+      <main className="relative z-10 mx-auto flex w-full max-w-[1920px] flex-1 flex-col gap-4 px-3 py-3 sm:px-4">
         <QuickActions />
 
-        <div className="grid flex-1 grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-[310px_minmax(0,1fr)_350px] 2xl:grid-cols-[340px_minmax(0,1fr)_390px]">
-          <div className="order-2 min-h-0 lg:order-2 xl:order-1">
+        {/* Top row — 3D twin with upper telemetry column (untouched) */}
+        <div className="grid flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)]">
+          <div className="order-2 min-h-0 lg:order-2">
             <LeftPanel
               vitals={vitals}
-              hazards={hazards}
-              weather={weather}
               solarStormActive={mission.solarStormActive}
-              onToggleSolarStorm={mission.toggleSolarStorm}
             />
           </div>
 
-          <div className="order-1 min-w-0 lg:order-1 lg:col-span-2 xl:order-2 xl:col-span-1">
+          <div className="order-1 min-w-0 lg:order-1 lg:col-span-1">
             <CenterStage
               vitals={vitals}
               hazards={hazards}
@@ -110,8 +110,20 @@ export default function MissionControlPage() {
               onSelectOrgan={(organ) => mission.setSelectedOrgan(organ)}
             />
           </div>
+        </div>
 
-          <div className="order-3 min-h-0">
+        {/* Lower 3-column balanced grid — hazards | AI doctor | black box */}
+        <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+          <div className="min-h-0">
+            <HazardsPanel
+              hazards={hazards}
+              weather={weather}
+              solarStormActive={mission.solarStormActive}
+              onToggleSolarStorm={mission.toggleSolarStorm}
+            />
+          </div>
+
+          <div className="min-h-0">
             <FlightSurgeonConsole
               vitals={vitals}
               protocol={mission.protocol}
@@ -123,6 +135,15 @@ export default function MissionControlPage() {
               solarStormActive={mission.solarStormActive}
               onRunTriage={mission.runTriage}
               onClearProtocol={mission.clearProtocol}
+            />
+          </div>
+
+          <div id="save-panel" className="min-h-0 scroll-mt-24">
+            <BlackBoxPanel
+              logs={mission.logs}
+              pendingLogCount={mission.pendingLogCount}
+              lastSync={mission.lastSync}
+              mode={mission.mode}
             />
           </div>
         </div>

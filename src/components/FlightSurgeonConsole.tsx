@@ -21,7 +21,6 @@ import type {
 import { cn } from '@/lib/utils';
 import { Panel, PanelHeading, DataChip } from '@/components/ui/Panel';
 import { ProtocolCard } from '@/components/ProtocolCard';
-import { BlackBoxLogList } from '@/components/BlackBoxLogList';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 
@@ -59,11 +58,7 @@ interface FlightSurgeonConsoleProps {
 export function FlightSurgeonConsole({
   vitals,
   protocol,
-  logs,
   isTriaging,
-  pendingLogCount,
-  lastSync,
-  mode,
   solarStormActive,
   onRunTriage,
   onClearProtocol,
@@ -283,7 +278,7 @@ export function FlightSurgeonConsole({
 
       {/* Active protocol */}
       <Panel
-        className="p-3.5"
+        className="flex-1 p-3.5"
         tone={protocol?.severity === 'CRITICAL' ? 'critical' : 'cyan'}
       >
         <div className="mb-2 flex items-center justify-between">
@@ -303,18 +298,6 @@ export function FlightSurgeonConsole({
           onClear={onClearProtocol}
         />
       </Panel>
-
-      {/* Black box */}
-      <div id="save-panel" className="scroll-mt-24">
-        <Panel className="p-3.5">
-          <BlackBoxLogList
-            logs={logs}
-            pendingCount={pendingLogCount}
-            lastSync={lastSync}
-            mode={mode}
-          />
-        </Panel>
-      </div>
 
       <p className="px-1 text-center font-mono text-[7px] uppercase leading-relaxed tracking-[0.1em] text-slate-700">
         Research prototype · not a substitute for a human flight surgeon

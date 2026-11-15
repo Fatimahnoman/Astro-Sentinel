@@ -276,7 +276,7 @@ export function TimelineSimulator({
       </div>
 
       {/* Dynamic countermeasures */}
-      <div className="relative mt-3 grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="relative mt-3 grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 sm:grid-cols-2 lg:grid-cols-4">
         {countermeasures.map((measure) => {
           const Icon = measure.icon;
           return (
