@@ -14,6 +14,7 @@ import {
 import type { AstronautVitals, ConnectivityMode, SyncResult } from '@/types/telemetry';
 import { useMetClock } from '@/hooks/useMetClock';
 import { cn, formatMet, formatUtcTime, getInitials } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface HeaderBarProps {
   crewProfiles: AstronautVitals[];
@@ -245,6 +246,11 @@ export function HeaderBar({
             >
               <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
             </button>
+          </div>
+
+          {/* Day/Night shift toggle */}
+          <div className="flex items-center justify-center">
+            <ThemeToggle />
           </div>
         </div>
       </div>

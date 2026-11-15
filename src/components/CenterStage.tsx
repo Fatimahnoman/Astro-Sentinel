@@ -238,7 +238,7 @@ export function CenterStage({
                 title={`${meta.label} — ${meta.description}`}
                 className={cn(
                   'flex min-h-[44px] items-center gap-1.5 rounded-lg border px-2 py-1.5 font-mono text-[8px] font-bold uppercase tracking-[0.14em] outline-none backdrop-blur-sm transition-all',
-                  'focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814]',
+                  'focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)]',
                   selected
                     ? 'border-violet/60 bg-violet/20 text-violet shadow-[0_0_18px_-6px_rgba(157,78,221,0.85)]'
                     : 'border-white/10 bg-void/60 text-slate-400 hover:border-electric/40 hover:bg-electric/10 hover:text-electric',

@@ -147,7 +147,7 @@ export function FlightSurgeonConsole({
               disabled={!vitals || isTriaging}
               onClick={() => triggerQuickSymptom(symptom.query)}
               title={`${symptom.label} — one tap and the AI doctor gives you a 3-step plan`}
-              className="group flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.025] px-2 py-1 text-left transition-all hover:border-violet/35 hover:bg-violet/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814] disabled:cursor-not-allowed disabled:opacity-40"
+              className="group flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.025] px-2 py-1 text-left transition-all hover:border-violet/35 hover:bg-violet/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Zap className="h-2.5 w-2.5 text-violet" />
               <span>

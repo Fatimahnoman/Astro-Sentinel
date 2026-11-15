@@ -82,7 +82,7 @@ export function QuickActions() {
             onClick={() => jumpTo(action.target)}
             title={`${action.title} — ${action.subtitle}`}
             className={cn(
-              'group flex h-full min-h-[64px] w-full items-center gap-3 rounded-xl border px-3 py-3 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814] md:min-h-[72px] md:px-4 md:py-3.5',
+              'group flex h-full min-h-[64px] w-full items-center gap-3 rounded-xl border px-3 py-3 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)] md:min-h-[72px] md:px-4 md:py-3.5',
               ACCENT_STYLES[action.accent],
             )}
           >

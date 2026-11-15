@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -28,7 +29,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(() => {
+            try {
+              var stored = window.localStorage.getItem('as-theme');
+              var theme = stored === 'light' || stored === 'dark'
+                ? stored
+                : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+              document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+            }
+          })();`}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

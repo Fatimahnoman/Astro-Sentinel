@@ -746,7 +746,7 @@ export default function HologramTwin({
           onClick={() => nudgeZoom(0.25)}
           aria-label="Zoom in — bring the astronaut closer"
           title="Zoom in · zoom out with the minus button"
-          className="grid h-10 w-10 place-items-center rounded-lg border border-electric/30 bg-void/70 text-electric backdrop-blur-sm transition-all hover:border-electric/60 hover:bg-electric/15 hover:shadow-[0_0_18px_-6px_rgba(0,240,255,0.8)] focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814]"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-electric/30 bg-void/70 text-electric backdrop-blur-sm transition-all hover:border-electric/60 hover:bg-electric/15 hover:shadow-[0_0_18px_-6px_rgba(0,240,255,0.8)] focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)]"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
         </button>
@@ -755,7 +755,7 @@ export default function HologramTwin({
           onClick={() => nudgeZoom(-0.25)}
           aria-label="Zoom out — see the whole body"
           title="Zoom out"
-          className="grid h-10 w-10 place-items-center rounded-lg border border-electric/30 bg-void/70 text-electric backdrop-blur-sm transition-all hover:border-electric/60 hover:bg-electric/15 hover:shadow-[0_0_18px_-6px_rgba(0,240,255,0.8)] focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814]"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-electric/30 bg-void/70 text-electric backdrop-blur-sm transition-all hover:border-electric/60 hover:bg-electric/15 hover:shadow-[0_0_18px_-6px_rgba(0,240,255,0.8)] focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)]"
         >
           <Minus className="h-4 w-4" strokeWidth={2} />
         </button>
@@ -764,7 +764,7 @@ export default function HologramTwin({
           onClick={resetView}
           aria-label="Reset view — original camera position and zoom"
           title="Reset view (camera + zoom)"
-          className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-void/70 text-slate-400 backdrop-blur-sm transition-all hover:border-electric/35 hover:text-electric focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814]"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-void/70 text-slate-400 backdrop-blur-sm transition-all hover:border-electric/35 hover:text-electric focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)]"
         >
           <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
         </button>
@@ -776,7 +776,7 @@ export default function HologramTwin({
           title={wheelZoomMode
             ? 'Wheel currently zooms the twin — click to make the wheel scroll the page'
             : 'Wheel currently scrolls the page — click to make the wheel zoom the twin (wheel-zoom mode)'}
-          className="flex h-10 w-10 flex-col items-center justify-center rounded-lg border border-white/10 bg-void/70 text-slate-400 backdrop-blur-sm transition-all hover:border-electric/35 hover:text-electric focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[#050814]"
+          className="flex h-10 w-10 flex-col items-center justify-center rounded-lg border border-white/10 bg-void/70 text-slate-400 backdrop-blur-sm transition-all hover:border-electric/35 hover:text-electric focus-visible:ring-2 focus-visible:ring-electric focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-void)]"
         >
           {wheelZoomMode ? (
             <ZoomIn className="h-4 w-4" strokeWidth={2} />
